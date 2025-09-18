@@ -1,4 +1,4 @@
-package game;
+package game.weapons;
 
 import edu.monash.fit2099.engine.weapons.IntrinsicWeapon;
 
