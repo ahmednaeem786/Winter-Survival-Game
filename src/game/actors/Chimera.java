@@ -5,6 +5,7 @@ import edu.monash.fit2099.engine.actions.ActionList;
 import edu.monash.fit2099.engine.actions.DoNothingAction;
 import edu.monash.fit2099.engine.actions.MoveActorAction;
 import edu.monash.fit2099.engine.actors.Actor;
+import edu.monash.fit2099.engine.actors.attributes.BaseAttributes;
 import edu.monash.fit2099.engine.displays.Display;
 import edu.monash.fit2099.engine.positions.Exit;
 import edu.monash.fit2099.engine.positions.GameMap;
@@ -25,14 +26,18 @@ import java.util.Random;
 import java.util.Set;
 
 /**
- * A mystical chimera creature that will eventually transform between elemental forms.
- * Currently implemented with a basic default state as foundation for the State Pattern.
+ * A mystical chimera creature that transforms between elemental forms using the State Pattern.
  *
- * This implementation follows the same structure as other tameable animals in the game,
- * extending TameableAnimal and implementing Follower and CombatAssistant interfaces.
+ * The Chimera follows predetermined state transitions:
+ * - Default State: Can only transition to Fire State (60% chance after 3 turns)
+ * - Fire State: Can transition to Ice State (60% chance after 3 turns)
+ * - Ice State: Can transition to Fire (70% when surrounded) or Default (50% when isolated 4+ turns)
+ *
+ * This implementation extends TameableAnimal and implements Follower and CombatAssistant interfaces,
+ * allowing it to be tamed by players and assist in combat while following its owner.
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 1.4
+ * @version 2.12
  */
 public class Chimera extends TameableAnimal implements Follower, CombatAssistant {
 
@@ -50,13 +55,34 @@ public class Chimera extends TameableAnimal implements Follower, CombatAssistant
      * Creates a new Chimera starting in default state.
      */
     public Chimera() {
-        super("Chimera", 'C', 400, Set.of(Apple.class, YewBerry.class));
+        super("Chimera", 'C', 150, Set.of(Apple.class, YewBerry.class));
         this.currentState = new DefaultChimeraState();
+        this.setIntrinsicWeapon(currentState.getStateWeapon());
     }
 
+    /**
+     * Called when the chimera is successfully tamed.
+     * Enables the TAMED ability which affects combat targeting and behavior.
+     */
     @Override
     protected void onTamed() {
         this.enableAbility(Abilities.TAMED);
+    }
+
+    /**
+     * Handles state transitions for both wild and tamed chimeras.
+     */
+    private void handleStateTransition(GameMap map, Display display) {
+        ChimeraState newState = currentState.attemptStateTransition(this, map, display);
+
+        if (newState != currentState) {
+            this.currentState = newState;
+            this.setIntrinsicWeapon(newState.getStateWeapon());
+            newState.onEnterState(this, map, display);
+
+            String status = tamed ? "Tamed" : "Wild";
+            display.println(status + " Chimera is now in state: " + newState.getStateName() + " (" + newState.getStateDisplayChar() + ")");
+        }
     }
 
     /**
@@ -71,7 +97,7 @@ public class Chimera extends TameableAnimal implements Follower, CombatAssistant
      */
     @Override
     protected Action wildBehavior(ActionList actions, Action lastAction, GameMap map, Display display) {
-        // Future: Add state transition logic here for wild chimeras
+        handleStateTransition(map, display);
         return currentState.getBehaviorAction(this, actions, lastAction, map, display);
     }
 
@@ -87,6 +113,11 @@ public class Chimera extends TameableAnimal implements Follower, CombatAssistant
      */
     @Override
     protected Action tamedBehavior(ActionList actions, Action lastAction, GameMap map, Display display) {
+        handleStateTransition(map, display);
+
+        // Run state behavior to update internal counters (but don't use the returned action)
+        currentState.getBehaviorAction(this, actions, lastAction, map, display);
+
         // Priority 1: Combat assistance
         Action combatAction = findCombatTarget(map);
         if (combatAction != null) {
@@ -95,6 +126,15 @@ public class Chimera extends TameableAnimal implements Follower, CombatAssistant
 
         // Priority 2: Follow owner
         return followOwner(map);
+    }
+
+    /**
+     * Changes the chimera's current state and updates all related properties.
+     */
+    private void setState(ChimeraState newState, GameMap map, Display display) {
+        this.currentState = newState;
+        this.setIntrinsicWeapon(newState.getStateWeapon());
+        newState.onEnterState(this, map, display);
     }
 
     /**
@@ -167,6 +207,15 @@ public class Chimera extends TameableAnimal implements Follower, CombatAssistant
     @Override
     public boolean canAssistInCombat() {
         return tamed && tamer != null;
+    }
+
+    /**
+     * Gets the current state for external inspection.
+     *
+     * @return the current state of the chimera
+     */
+    public ChimeraState getCurrentState() {
+        return currentState;
     }
 
     /**
@@ -249,5 +298,20 @@ public class Chimera extends TameableAnimal implements Follower, CombatAssistant
         int deltaX = Math.abs(loc1.x() - loc2.x());
         int deltaY = Math.abs(loc1.y() - loc2.y());
         return deltaX <= 1 && deltaY <= 1 && !(deltaX == 0 && deltaY == 0);
+    }
+
+    /**
+     * Returns a string representation of the chimera showing current state information.
+     * Displays state name, display character, and current/maximum health values.
+     *
+     * @return formatted string with chimera status information
+     */
+    @Override
+    public String toString() {
+        return String.format("%s [%c] (%d/%d)",
+                currentState.getStateName(),
+                currentState.getStateDisplayChar(),
+                this.getAttribute(BaseAttributes.HEALTH),
+                this.getMaximumAttribute(BaseAttributes.HEALTH));
     }
 }
