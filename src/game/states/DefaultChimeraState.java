@@ -30,7 +30,7 @@ import java.util.Random;
  * - Can only transition to Fire State
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 2.9
+ * @version 3.0
  */
 public class DefaultChimeraState implements ChimeraState {
     private static final Random random = new Random();
@@ -100,7 +100,7 @@ public class DefaultChimeraState implements ChimeraState {
         if (turnsInState >= 3) {
             int chance = random.nextInt(100);
             if (chance < 60) {
-                display.println("The chimera's body begins to glow with inner fire!");
+                display.println("\nThe chimera's body begins to glow with inner fire!");
                 return new FireState();
             }
         }

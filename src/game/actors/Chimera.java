@@ -37,7 +37,7 @@ import java.util.Set;
  * allowing it to be tamed by players and assist in combat while following its owner.
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 2.12
+ * @version 3.0
  */
 public class Chimera extends TameableAnimal implements Follower, CombatAssistant {
 
@@ -81,7 +81,7 @@ public class Chimera extends TameableAnimal implements Follower, CombatAssistant
             newState.onEnterState(this, map, display);
 
             String status = tamed ? "Tamed" : "Wild";
-            display.println(status + " Chimera is now in state: " + newState.getStateName() + " (" + newState.getStateDisplayChar() + ")");
+            display.println(status + " Chimera is now in state: " + newState.getStateName() + " (" + newState.getStateDisplayChar() + ")\n");
         }
     }
 

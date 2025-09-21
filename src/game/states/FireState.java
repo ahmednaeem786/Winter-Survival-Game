@@ -32,7 +32,7 @@ import java.util.Random;
  * - 40% chance to remain in Fire State each turn
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 2.8
+ * @version 2.9
  */
 public class FireState implements ChimeraState {
     private static final Random random = new Random();
@@ -100,7 +100,7 @@ public class FireState implements ChimeraState {
         if (turnsInState >= 3) {
             // Fire -> Ice after 3 turns: 60% chance, 40% stay Fire
             if (chance < 60) {
-                display.println("The flames die down as ice crystals form around the chimera!\n");
+                display.println("\nThe flames die down as ice crystals form around the chimera!");
                 return new IceState();
             }
         }
