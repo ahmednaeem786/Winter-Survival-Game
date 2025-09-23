@@ -89,19 +89,28 @@ public class IceState implements ChimeraState {
         return iceShard;
     }
 
-
+    /**
+     * Attempts state transition from Ice to Poison or Default states based on time conditions.
+     *
+     * Transition Logic:
+     * - After 3+ turns in state: 40% chance to Poison, 60% stay Ice
+     * - After 4+ turns alone: 30% chance to Default, 70% stay Ice
+     *
+     * @param chimera the chimera attempting transition
+     * @param map the current game map (unused in this transition)
+     * @param display the display for transition messages
+     * @return PoisonState, DefaultChimeraState, or this state based on conditions
+     */
     @Override
     public ChimeraState attemptStateTransition(Actor chimera, GameMap map, Display display) {
         int chance = random.nextInt(100);
 
         if (turnsInState >= 3) {
-            // Ice -> Poison after 3 turns: 40% chance, 60% stay Ice
             if (chance < 40) {
-                display.println("The ice transforms into toxic vapors as the chimera seeks a different approach!\n");
+                display.println("\nThe ice transforms into toxic vapors as the chimera seeks a different approach!\n");
                 return new PoisonState();
             }
         } else if (turnsAlone >= 4) {
-            // Ice -> Default when alone too long: 30% chance, 70% stay Ice
             if (chance < 30) {
                 display.println("The ice melts away as the chimera returns to its natural form!\n");
                 return new DefaultChimeraState();
@@ -149,28 +158,26 @@ public class IceState implements ChimeraState {
         // Give ice armor buff - increase max health by 5 (only happens once per ice transition)
         int beforeMax = chimera.getMaximumAttribute(BaseAttributes.HEALTH);
         chimera.modifyStatsMaximum(BaseAttributes.HEALTH,
-               ActorAttributeOperation.INCREASE, 5);
+                ActorAttributeOperation.INCREASE, 5);
         int afterMax = chimera.getMaximumAttribute(BaseAttributes.HEALTH);
 
         display.println("Ice armor forms around the chimera, increasing its resilience! (Max Health: "
                 + beforeMax + " → " + afterMax + ")");
-
-        // If the chimera is tamed, also give the buff to the tamer
-        if (chimera instanceof game.taming.Tameable) {
-            game.taming.Tameable tameableChimera = (game.taming.Tameable) chimera;
-
-            if (tameableChimera.isTamed() && tameableChimera.getTamer() != null) {
-                Actor tamer = tameableChimera.getTamer();
-                int tamerBeforeMax = tamer.getMaximumAttribute(BaseAttributes.HEALTH);
-                tamer.modifyStatsMaximum(BaseAttributes.HEALTH,
-                        ActorAttributeOperation.INCREASE, 5);
-                int tamerAfterMax = tamer.getMaximumAttribute(BaseAttributes.HEALTH);
-
-                display.println("Ice armor extends to " + tamer + ", increasing their resilience! (Max Health: "
-                        + tamerBeforeMax + " → " + tamerAfterMax + ")\n");
-            }
-        }
     }
+
+    /**
+     * Applies ice armor buffs to the chimera's allies when entering ice state.
+     * Delegates to the chimera's own method to handle tamer-specific buff logic.
+     *
+     * @param chimera the chimera entering ice state
+     * @param map the current game map (unused)
+     * @param display the display for buff notifications
+     */
+    @Override
+    public void applyBuffsToAllies(game.actors.Chimera chimera, GameMap map, Display display) {
+        chimera.applyIceArmorToTamer(display);
+    }
+
 
     /**
      * Finds all adjacent enemy actors for threat assessment.

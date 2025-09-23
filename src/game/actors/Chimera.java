@@ -5,6 +5,7 @@ import edu.monash.fit2099.engine.actions.ActionList;
 import edu.monash.fit2099.engine.actions.DoNothingAction;
 import edu.monash.fit2099.engine.actions.MoveActorAction;
 import edu.monash.fit2099.engine.actors.Actor;
+import edu.monash.fit2099.engine.actors.attributes.ActorAttributeOperation;
 import edu.monash.fit2099.engine.actors.attributes.BaseAttributes;
 import edu.monash.fit2099.engine.displays.Display;
 import edu.monash.fit2099.engine.positions.Exit;
@@ -55,7 +56,7 @@ public class Chimera extends TameableAnimal implements Follower, CombatAssistant
      * Creates a new Chimera starting in default state.
      */
     public Chimera() {
-        super("Chimera", 'C', 150, Set.of(Apple.class, YewBerry.class));
+        super("Chimera", 'C', 350, Set.of(Apple.class, YewBerry.class));
         this.currentState = new DefaultChimeraState();
         this.setIntrinsicWeapon(currentState.getStateWeapon());
     }
@@ -80,6 +81,7 @@ public class Chimera extends TameableAnimal implements Follower, CombatAssistant
             this.setIntrinsicWeapon(newState.getStateWeapon());
             newState.onEnterState(this, map, display);
 
+            newState.applyBuffsToAllies(this, map, display);
             String status = tamed ? "Tamed" : "Wild";
             display.println(status + " Chimera is now in state: " + newState.getStateName() + " (" + newState.getStateDisplayChar() + ")\n");
         }
@@ -135,6 +137,8 @@ public class Chimera extends TameableAnimal implements Follower, CombatAssistant
         this.currentState = newState;
         this.setIntrinsicWeapon(newState.getStateWeapon());
         newState.onEnterState(this, map, display);
+
+        newState.applyBuffsToAllies(this, map, display);
     }
 
     /**
@@ -299,6 +303,24 @@ public class Chimera extends TameableAnimal implements Follower, CombatAssistant
         int deltaY = Math.abs(loc1.y() - loc2.y());
         return deltaX <= 1 && deltaY <= 1 && !(deltaX == 0 && deltaY == 0);
     }
+
+    /**
+     * Applies ice armor buff (+5 max health) to the chimera's tamer if tamed.
+     * Only affects tamed chimeras with valid tamers.
+     *
+     * @param display the display for buff notifications
+     */
+    public void applyIceArmorToTamer(Display display) {
+        if (tamed && tamer != null) {
+            int tBefore = tamer.getMaximumAttribute(BaseAttributes.HEALTH);
+            tamer.modifyStatsMaximum(BaseAttributes.HEALTH, ActorAttributeOperation.INCREASE, 5);
+            int tAfter = tamer.getMaximumAttribute(BaseAttributes.HEALTH);
+            display.println("Ice armor extends to " + tamer
+                    + ", increasing their resilience! (Max Health: "
+                    + tBefore + " → " + tAfter + ")\n");
+        }
+    }
+
 
     /**
      * Returns a string representation of the chimera showing current state information.

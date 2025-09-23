@@ -6,6 +6,7 @@ import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.displays.Display;
 import edu.monash.fit2099.engine.positions.GameMap;
 import edu.monash.fit2099.engine.weapons.IntrinsicWeapon;
+import game.actors.Chimera;
 
 /**
  * Interface defining the State Pattern contract for Chimera elemental transformations.
@@ -95,4 +96,15 @@ public interface ChimeraState {
      * @param display the display for entry messages and effects
      */
     void onEnterState(Actor chimera, GameMap map, Display display);
+
+    /**
+     * Default implementation for applying state-specific buffs to chimera allies.
+     *
+     * @param chimera the chimera entering this state
+     * @param map the current game map
+     * @param display the display for buff notifications
+     */
+    default void applyBuffsToAllies(Chimera chimera, GameMap map, Display display) {
+        // Default: no buffs to allies
+    }
 }
