@@ -8,6 +8,7 @@ import edu.monash.fit2099.engine.positions.Location;
 import game.actors.GameActor;
 import game.items.Torch;
 import game.status.BurnEffect;
+import game.terrain.FireGround;
 import java.util.Random;
 
 public class TorchAttackAction extends Action {
