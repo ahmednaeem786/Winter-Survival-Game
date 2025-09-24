@@ -11,6 +11,8 @@ import edu.monash.fit2099.engine.positions.GameMap;
 import edu.monash.fit2099.engine.positions.Location;
 import game.actions.AxeAttackAction;
 import game.actors.GameActor;
+import game.coating.Coatable;
+import game.coating.CoatingType;
 
 /**
  * A melee weapon that allows the {@link Actor} to attack adjacent targets.
@@ -24,7 +26,8 @@ import game.actors.GameActor;
  *
  * @author Ahmed
  */
-public class Axe extends Item {
+public class Axe extends Item implements Coatable {
+  private CoatingType coating = CoatingType.NONE;
 
   /**
    * Creates a new Axe item.
@@ -61,5 +64,20 @@ public class Axe extends Item {
       }
     }
     return actions;
+  }
+
+  @Override
+  public void setCoating(CoatingType c) {
+    this.coating = c == null ? CoatingType.NONE : c;
+  }
+
+  @Override
+  public CoatingType getCoating() {
+    return coating;
+  }
+
+  @Override
+  public void clearCoating() {
+    this.coating = CoatingType.NONE;
   }
 }

@@ -10,6 +10,8 @@ import edu.monash.fit2099.engine.positions.GameMap;
 import edu.monash.fit2099.engine.positions.Location;
 import game.actions.BowAttackAction;
 import game.actors.GameActor;
+import game.coating.Coatable;
+import game.coating.CoatingType;
 import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Queue;
@@ -25,7 +27,9 @@ import java.util.Set;
  *
  * @author Ahmed
  */
-public class Bow extends Item {
+public class Bow extends Item implements Coatable {
+
+  private CoatingType coating = CoatingType.NONE;
 
   /**
    * Constructs a new Bow item.
@@ -97,4 +101,18 @@ public class Bow extends Item {
     }
   }
 
+  @Override
+  public void setCoating(CoatingType c) {
+    this.coating = c == null ? CoatingType.NONE : c;
+  }
+
+  @Override
+  public CoatingType getCoating () {
+    return coating;
+  }
+
+  @Override
+  public void clearCoating() {
+    this.coating = CoatingType.NONE;
+  }
 }
