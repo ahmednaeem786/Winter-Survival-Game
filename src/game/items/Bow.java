@@ -15,12 +15,36 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 
+/**
+ * A ranged weapon that exposes BowAttackAction(s) for targets within a
+ * 3-tile radius. Targets are discovered using a breadth-first search (BFS)
+ * from the owner's location.
+ *
+ * <p>Only actors that advertise the {@code CAN_RECIEVE_STATUS} capability are
+ * considered valid targets (this keeps the action-creation boundary capability-driven).
+ *
+ * @author Ahmed
+ */
 public class Bow extends Item {
 
+  /**
+   * Constructs a new Bow item.
+   * Symbol: {@code 'c'}, portable: {@code true}.
+   */
   public Bow() {
     super("Bow", 'c', true);
   }
 
+  /**
+   * Produces BowAttackAction instances for each valid target within range 3.
+   * The BFS guarantees that each reachable location is visited once, and
+   * that the {@code depth} passed to BowAttackAction corresponds to the
+   * shortest distance (in tiles) from the owner.
+   *
+   * @param owner the actor carrying the bow
+   * @param map the game map
+   * @return an ActionList containing BowAttackAction for each discovered target
+   */
   @Override
   public ActionList allowableActions(Actor owner, GameMap map) {
     ActionList actions = new ActionList();
@@ -36,6 +60,7 @@ public class Bow extends Item {
       Location loc = ld.location;
       int depth = ld.depth;
 
+      // Skipping start location as a target (depth==0)
       if (depth > 0 && loc.containsAnActor()) {
         Actor maybeTarget = loc.getActor();
         if (maybeTarget.hasAbility(CAN_RECIEVE_STATUS)) {
@@ -43,7 +68,7 @@ public class Bow extends Item {
           actions.add(new BowAttackAction(this, gameTarget, depth));
         }
       }
-
+      // Continuing Breadth First Search until range (depth) limit reached
       if (depth < 3) {
         for (Exit exit : loc.getExits()) {
           Location next = exit.getDestination();
@@ -58,6 +83,10 @@ public class Bow extends Item {
     return actions;
   }
 
+  /**
+   * Simple helper that pairs a {@link Location} with its BFS depth.
+   * Kept package-private and minimal; no additional behavior required.
+   */
   private static class LocationDepth {
     final Location location;
     final int depth;

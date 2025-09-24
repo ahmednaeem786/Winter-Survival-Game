@@ -7,25 +7,61 @@ import game.actors.GameActor;
 import game.items.Bow;
 import java.util.Random;
 
+/**
+ * An {@link Action} that represents firing the {@link Bow} at a target within range.
+ *
+ * <p>Behavior:
+ * <ul>
+ *   <li>25% chance to hit and deal 5 immediate damage.</li>
+ *   <li>Menu and result messages include the distance for clarity.</li>
+ * </ul>
+ *
+ * <p>The action is constructed per-target by {@link game.items.Bow#allowableActions},
+ * so {@code execute} assumes the provided {@link GameActor} target is valid.
+ *
+ * @author Ahmed
+ */
 public class BowAttackAction extends Action {
 
+  /** The bow used to perform the attack (kept for potential future use). */
   private final Bow bow;
+
+  /** Target of this attack. */
   private final GameActor target;
+
+  /** Distance (in tiles) from attacker to target, used for messaging. */
   private final int distance;
+
+  /** Random Number Generator for hit rolls. */
   private final Random rand = new Random();
 
+  /**
+   * Construct a BowAttackAction for the given target.
+   *
+   * @param bow the Bow item used
+   * @param target the target GameActor
+   * @param distance distance from attacker to target (1..3)
+   */
   public BowAttackAction (Bow bow, GameActor target, int distance) {
     this.bow = bow;
     this.target = target;
     this.distance = distance;
   }
 
+  /**
+   * Execute the bow attack.
+   *
+   * @param actor the actor performing the attack
+   * @param map the game map (provided by engine; not used here)
+   * @return a human-readable description of the result
+   */
   @Override
   public String execute(Actor actor, GameMap map) {
     if (target == null) {
       return actor + " fires an arrow into empty space.";
     }
 
+    //25% hit chance
     if (rand.nextInt(100) < 25) {
       target.hurt(5);
       return actor + " shoots " + target + " with a bow (distance " + distance + ") for 5 damage.";
@@ -34,6 +70,12 @@ public class BowAttackAction extends Action {
     }
   }
 
+  /**
+   * Menu string shown to the player when selecting this action.
+   *
+   * @param actor the actor that would perform this action
+   * @return menu description
+   */
   @Override
   public String menuDescription(Actor actor) {
     return actor + " shoots " + target + " (range " + distance + " ) with Bow.";
