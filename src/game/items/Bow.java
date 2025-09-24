@@ -8,6 +8,7 @@ import edu.monash.fit2099.engine.items.Item;
 import edu.monash.fit2099.engine.positions.Exit;
 import edu.monash.fit2099.engine.positions.GameMap;
 import edu.monash.fit2099.engine.positions.Location;
+import game.actions.BowAttackAction;
 import game.actors.GameActor;
 import java.util.ArrayDeque;
 import java.util.HashSet;
