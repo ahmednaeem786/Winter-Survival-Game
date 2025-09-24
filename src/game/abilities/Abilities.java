@@ -10,5 +10,6 @@ package game.abilities;
 public enum Abilities {
     SLEEPING,
     HYDRATION,
+    WARMTH,
     TAMED,
 }

@@ -4,7 +4,10 @@ import edu.monash.fit2099.engine.actions.Action;
 import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.positions.GameMap;
 import game.actors.GameActor;
+import game.coating.CoatingType;
 import game.items.Bow;
+import game.status.FrostBiteEffect;
+import game.status.PoisonEffect;
 import java.util.Random;
 
 /**
@@ -57,6 +60,16 @@ public class BowAttackAction extends Action {
    */
   @Override
   public String execute(Actor actor, GameMap map) {
+
+    CoatingType coat = bow.getCoating();
+    if (coat == CoatingType.YEWBERRY) {
+      target.addStatusEffect(new PoisonEffect(5, 4));
+    } else if (coat == CoatingType.SNOW) {
+
+      //frostbite effect only applies if target is not tundra spawned
+      target.addStatusEffect(new FrostBiteEffect(3, 1));
+    }
+
     if (target == null) {
       return actor + " fires an arrow into empty space.";
     }
