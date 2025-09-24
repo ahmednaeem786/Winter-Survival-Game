@@ -9,18 +9,18 @@ import edu.monash.fit2099.engine.positions.GameMap;
 import game.actions.AttackAction;
 import game.actions.TameAction;
 
+import game.actors.GameActor;
 import java.util.Set;
 
 /**
  * Abstract base class for tameable animals in the winter survival game.
- *
  * This class provides the foundation for creatures that can be tamed by players
  * using specific food items.
  *
  * @author Muhamad Shafy Dimas Rafarrel
  * @version 1.5
  */
-public abstract class TameableAnimal extends Actor implements Tameable {
+public abstract class TameableAnimal extends GameActor implements Tameable {
 
     /**
      * Whether this animal has been tamed by a player.
@@ -63,7 +63,6 @@ public abstract class TameableAnimal extends Actor implements Tameable {
 
     /**
      * Tames this animal and establishes ownership relationship.
-     *
      * When an animal is successfully tamed, it becomes loyal to the tamer,
      * changes its behavior patterns, and triggers any taming-specific effects
      * defined in the subclass.
@@ -89,7 +88,6 @@ public abstract class TameableAnimal extends Actor implements Tameable {
 
     /**
      * Determines if this animal can be tamed using the specified item.
-     *
      * Animals can only be tamed with specific food items. Each animal species
      * has its own preferences defined in the acceptedFoods set.
      *
@@ -103,7 +101,6 @@ public abstract class TameableAnimal extends Actor implements Tameable {
 
     /**
      * Called when the animal is successfully tamed.
-     *
      * Subclasses should override this method to implement any special effects
      * or behavior changes that occur when the animal becomes tamed, such as
      * gaining special abilities.
@@ -112,7 +109,6 @@ public abstract class TameableAnimal extends Actor implements Tameable {
 
     /**
      * Defines the behavior pattern for wild (untamed) animals.
-     *
      * Wild animals typically exhibit aggressive or neutral behaviors such as
      * attacking players, wandering randomly, or fleeing from threats.
      *
@@ -126,7 +122,6 @@ public abstract class TameableAnimal extends Actor implements Tameable {
 
     /**
      * Defines the behavior pattern for tamed animals.
-     *
      * Tamed animals typically exhibit loyal behaviors such as following their
      * owner, defending them, or staying nearby. They should not attack their
      * tamer or other friendly actors.
@@ -141,7 +136,6 @@ public abstract class TameableAnimal extends Actor implements Tameable {
 
     /**
      * Determines the animal's action for this turn based on its taming status.
-     *
      * This method serves as the main behavioral dispatcher, routing to either
      * wild or tamed behavior patterns depending on the animal's current state.
      *
@@ -153,6 +147,7 @@ public abstract class TameableAnimal extends Actor implements Tameable {
      */
     @Override
     public Action playTurn(ActionList actions, Action lastAction, GameMap map, Display display) {
+        tickStatusEffects(map);
         if (tamed) {
             return tamedBehavior(actions, lastAction, map, display);
         } else {
@@ -162,7 +157,6 @@ public abstract class TameableAnimal extends Actor implements Tameable {
 
     /**
      * Generates the list of actions that other actors can perform on this animal.
-     *
      * This method controls what interactions are available to players and other
      * actors when they encounter this animal.
      *

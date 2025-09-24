@@ -2,7 +2,6 @@ package game.actors;
 
 import edu.monash.fit2099.engine.actions.Action;
 import edu.monash.fit2099.engine.actions.ActionList;
-import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.actors.attributes.BaseActorAttribute;
 import edu.monash.fit2099.engine.actors.attributes.BaseAttributes;
 import edu.monash.fit2099.engine.displays.Display;
@@ -20,13 +19,12 @@ import game.weapons.BareFist;
  * @author Muhamad Shafy Dimas Rafarrel
  * @version 3.7
  */
-public class Player extends Actor implements HydrationCapability {
+public class Player extends GameActor implements HydrationCapability {
     private BaseActorAttribute hydration;
     private BaseActorAttribute warmth;
 
     /**
      * Constructor for creating a new Player character.
-     *
      * Initializes the player with survival attributes, starting equipment,
      * and basic combat capabilities.
      *
@@ -51,7 +49,6 @@ public class Player extends Actor implements HydrationCapability {
 
     /**
      * Processes the player's turn in the game loop.
-     *
      * The method implements the core survival mechanics by automatically
      * decreasing hydration and warmth each turn. It also provides complete status feedback to
      * help players make informed decisions.
@@ -64,6 +61,7 @@ public class Player extends Actor implements HydrationCapability {
      */
     @Override
     public Action playTurn(ActionList actions, Action lastAction, GameMap map, Display display) {
+        tickStatusEffects(map);
         // Check if player is unconscious (hydration or warmth at 0)
         if (hydration.get() <= 0 || warmth.get() <= 0) {
             display.println(name + " becomes unconscious! Game Over!");
@@ -92,7 +90,6 @@ public class Player extends Actor implements HydrationCapability {
 
     /**
      * Increases the player's hydration level by the specified amount.
-     *
      * This method is typically called when the player drinks from a bottle
      * or consumes other hydrating items.
      * @param amount number of hydration points to add (should be positive)
