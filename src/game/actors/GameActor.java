@@ -1,5 +1,7 @@
 package game.actors;
 
+import static game.capabilities.StatusAbilities.CAN_RECIEVE_STATUS;
+
 import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.positions.GameMap;
 
@@ -14,6 +16,8 @@ public abstract class GameActor extends Actor {
 
   public GameActor(String name, char displayChar, int hitPoints) {
     super(name, displayChar, hitPoints);
+
+    this.enableAbility(CAN_RECIEVE_STATUS);
   }
 
   public void addStatusEffect (StatusEffect effect) {
