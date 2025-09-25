@@ -101,16 +101,29 @@ public class Bow extends Item implements Coatable {
     }
   }
 
+  /**
+   * Set the current coating of the bow.
+   *
+   * @param c the coating type to apply; if null, defaults to {@link CoatingType#NONE}
+   */
   @Override
   public void setCoating(CoatingType c) {
     this.coating = c == null ? CoatingType.NONE : c;
   }
 
+  /**
+   * Get the current coating applied to the bow.
+   *
+   * @return the current {@link CoatingType} of the bow
+   */
   @Override
   public CoatingType getCoating () {
     return coating;
   }
 
+  /**
+   * Remove any coating from the bow, resetting it to {@link CoatingType#NONE}.
+   */
   @Override
   public void clearCoating() {
     this.coating = CoatingType.NONE;

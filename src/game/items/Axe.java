@@ -15,18 +15,22 @@ import game.coating.Coatable;
 import game.coating.CoatingType;
 
 /**
- * A melee weapon that allows the {@link Actor} to attack adjacent targets.
+ * A melee weapon that allows an {@link Actor} to attack adjacent targets.
  *
  * <p>The {@code Axe} deals flat damage and has a chance to inflict
  * {@link game.status.BleedEffect} when attacking valid {@link GameActor}s
- * that have the {@link game.capabilities.StatusAbilities#CAN_RECIEVE_STATUS} ability.
+ * that can receive status effects (indicated by the {@code CAN_RECIEVE_STATUS}
+ * ability). This class also implements {@link Coatable} so the axe can be
+ * coated (e.g., SNOW or YEWBERRY) and attack actions can consult the coating.
  *
- * <p>It generates {@link AxeAttackAction} instances for each attackable adjacent
- * target at runtime via {@link #allowableActions(Actor, GameMap)}.
+ * <p>The axe dynamically generates {@link AxeAttackAction} instances for each
+ * attackable adjacent target via {@link #allowableActions(Actor, GameMap)}.
  *
  * @author Ahmed
  */
 public class Axe extends Item implements Coatable {
+
+  /** Current coating applied to this axe; {@link CoatingType#NONE} means uncoated. */
   private CoatingType coating = CoatingType.NONE;
 
   /**
@@ -66,16 +70,29 @@ public class Axe extends Item implements Coatable {
     return actions;
   }
 
+  /**
+   * Set the current coating of the axe.
+   *
+   * @param c the coating type to apply; if null, defaults to {@link CoatingType#NONE}
+   */
   @Override
   public void setCoating(CoatingType c) {
     this.coating = c == null ? CoatingType.NONE : c;
   }
 
+  /**
+   * Get the current coating applied to the axe.
+   *
+   * @return the current {@link CoatingType} of the axe
+   */
   @Override
   public CoatingType getCoating() {
     return coating;
   }
 
+  /**
+   * Remove any coating from the axe, resetting it to {@link CoatingType#NONE}.
+   */
   @Override
   public void clearCoating() {
     this.coating = CoatingType.NONE;

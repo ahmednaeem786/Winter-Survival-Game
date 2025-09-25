@@ -11,12 +11,19 @@ import game.status.PoisonEffect;
 import java.util.Random;
 
 /**
- * An {@link Action} that represents firing the {@link Bow} at a target within range.
+ * An {@link Action} that represents firing a {@link Bow} at a target within range.
  *
  * <p>Behavior:
  * <ul>
  *   <li>25% chance to hit and deal 5 immediate damage.</li>
- *   <li>Menu and result messages include the distance for clarity.</li>
+ *   <li>If the attack hits and the bow is coated, the coating's effect is applied:
+ *       <ul>
+ *         <li>{@link CoatingType#YEWBERRY} &rarr; {@link PoisonEffect}(5 turns, 4 dmg/turn)</li>
+ *         <li>{@link CoatingType#SNOW} &rarr; {@link FrostBiteEffect}(3 turns, -1 WARMTH/turn)</li>
+ *       </ul>
+ *   </li>
+ *   <li>Coating effects are only applied on a successful hit and the effect classes
+ *       themselves implement any further immunity checks (e.g., tundra immunity for frostbite).</li>
  * </ul>
  *
  * <p>The action is constructed per-target by {@link game.items.Bow#allowableActions},
@@ -54,6 +61,9 @@ public class BowAttackAction extends Action {
   /**
    * Execute the bow attack.
    *
+   * <p>Coating effects are applied only when the arrow hits. The result message
+   * includes whether the attack hit and any coating effect applied.
+   *
    * @param actor the actor performing the attack
    * @param map the game map (provided by engine; not used here)
    * @return a human-readable description of the result
@@ -61,28 +71,36 @@ public class BowAttackAction extends Action {
   @Override
   public String execute(Actor actor, GameMap map) {
 
-    CoatingType coat = bow.getCoating();
-    if (coat == CoatingType.YEWBERRY) {
-      target.addStatusEffect(new PoisonEffect(5, 4));
-    } else if (coat == CoatingType.SNOW) {
-
-      //frostbite effect only applies if target is not tundra spawned
-      target.addStatusEffect(new FrostBiteEffect(3, 1));
-    }
-
+    // if no target is supplied, describe firing into empty space.
     if (target == null) {
       return actor + " fires an arrow into empty space.";
     }
 
-    //25% hit chance
+    // 25% hit chance
     if (rand.nextInt(100) < 25) {
+      // Applying immediate damage.
       target.hurt(5);
-      return actor + " shoots " + target + " with a bow (distance " + distance + ") for 5 damage.";
+      StringBuilder result = new StringBuilder(
+          actor + " shoots " + target + " with a bow (distance " + distance + ") for 5 damage.");
+
+      // If the bow exists and has a coating, apply the coating effect on a successful hit.
+      if (bow != null) {
+        CoatingType coat = bow.getCoating();
+        if (coat == CoatingType.YEWBERRY) {
+          target.addStatusEffect(new PoisonEffect(5, 4));
+          result.append(" " + target + " is poisoned (4 dmg/turn for 5 turns).");
+        } else if (coat == CoatingType.SNOW) {
+
+          target.addStatusEffect(new FrostBiteEffect(3, 1));
+          result.append(" " + target + " is frostbitten (reduces WARMTH by 1 for 3 turns).");
+        }
+      }
+
+      return result.toString();
     } else {
       return actor + " fires an arrow at " + target + " (distance " + distance + ") but misses.";
     }
   }
-
   /**
    * Menu string shown to the player when selecting this action.
    *
