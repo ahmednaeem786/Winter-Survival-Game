@@ -18,7 +18,7 @@ import game.actors.Chimera;
  * while providing a consistent interface for the Chimera class to interact with.
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 2.1
+ * @version 2.2
  */
 public interface ChimeraState {
     /**
@@ -80,6 +80,20 @@ public interface ChimeraState {
      * @return the character symbol for this state
      */
     char getStateDisplayChar();
+
+    /**
+     * Creates an attack action appropriate for this state.
+     * Some states may add special effects (like fire spreading) to attacks.
+     *
+     * @param target the actor being attacked
+     * @param direction the direction of the attack
+     * @param targetLocation the location of the target
+     * @param map the current game map
+     * @param display the display for attack messages
+     * @return an attack action with state-specific effects
+     */
+    Action createAttackAction(Actor target, String direction, edu.monash.fit2099.engine.positions.Location targetLocation,
+                              GameMap map, Display display);
 
     /**
      * Called when the chimera enters this state.

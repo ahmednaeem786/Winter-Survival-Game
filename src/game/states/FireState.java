@@ -12,6 +12,7 @@ import edu.monash.fit2099.engine.positions.Location;
 import edu.monash.fit2099.engine.weapons.IntrinsicWeapon;
 import game.abilities.Abilities;
 import game.actions.AttackAction;
+import game.terrain.Fire;
 import game.weapons.FlameBreath;
 
 import java.util.ArrayList;
@@ -62,11 +63,28 @@ public class FireState implements ChimeraState {
                 Actor target = adjacentLocation.getActor();
                 if (!target.hasAbility(Abilities.TAMED)) {
                     enemiesAttacked++;
-                    return new AttackAction(target, exit.getName(), flameBreath);
+                    return new FireAttackAction(target, exit.getName(), flameBreath, adjacentLocation, display);
                 }
             }
         }
         return aggressiveWander(currentLocation);
+    }
+
+    /**
+     * Creates a fire attack action that spreads flames to surrounding locations.
+     * When executed, this attack burns up to two random adjacent tiles around the target.
+     *
+     * @param target the actor being attacked
+     * @param direction the direction of the attack
+     * @param targetLocation the location of the target
+     * @param map the current game map
+     * @param display the display for attack and fire spread messages
+     * @return a FireAttackAction with flame spreading effects
+     */
+    @Override
+    public Action createAttackAction(Actor target, String direction, Location targetLocation,
+                                     GameMap map, Display display) {
+        return new FireAttackAction(target, direction, flameBreath, targetLocation, display);
     }
 
     /**
@@ -99,7 +117,7 @@ public class FireState implements ChimeraState {
 
         if (turnsInState >= 3) {
             // Fire -> Ice after 3 turns: 60% chance, 40% stay Fire
-            if (chance < 60) {
+            if (chance < 1) {
                 display.println("\nThe flames die down as ice crystals form around the chimera!");
                 return new IceState();
             }
@@ -168,5 +186,63 @@ public class FireState implements ChimeraState {
             }
         }
         return new DoNothingAction();
+    }
+
+    /**
+     * Custom attack action that burns two surrounding locations of the target.
+     */
+    private class FireAttackAction extends AttackAction {
+        private Location targetLocation;
+        private Display display;
+
+        public FireAttackAction(Actor target, String direction, IntrinsicWeapon weapon,
+                                Location targetLoc, Display disp) {
+            super(target, direction, weapon);
+            this.targetLocation = targetLoc;
+            this.display = disp;
+        }
+
+        @Override
+        public String execute(Actor actor, GameMap map) {
+            String result = super.execute(actor, map);
+
+            // Burn two random surrounding locations of the target
+            burnSurroundings(targetLocation);
+
+            return result + " (Fire spreads around the target!)";
+        }
+
+        /**
+         * Burns two random surrounding locations of the target.
+         *
+         * @param center the location of the attacked target
+         */
+        private void burnSurroundings(Location center) {
+            List<Location> validLocations = new ArrayList<>();
+
+            // Find all valid locations to burn
+            for (Exit exit : center.getExits()) {
+                Location adjacentLocation = exit.getDestination();
+                if (!adjacentLocation.containsAnActor() &&
+                        adjacentLocation.getGround().getDisplayChar() != '^') {
+                    validLocations.add(adjacentLocation);
+                }
+            }
+
+            // Burn up to 2 random locations
+            Collections.shuffle(validLocations, random);
+            int burned = 0;
+            for (Location loc : validLocations) {
+                if (burned >= 2) break;
+                loc.setGround(new Fire());
+                burned++;
+            }
+
+            if (burned > 0) {
+                display.println("The fire spreads to "
+                        + burned
+                        + " surrounding location(s)!");
+            }
+        }
     }
 }

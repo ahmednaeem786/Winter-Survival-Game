@@ -38,7 +38,7 @@ import java.util.Set;
  * allowing it to be tamed by players and assist in combat while following its owner.
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 3.0
+ * @version 3.1
  */
 public class Chimera extends TameableAnimal implements Follower, CombatAssistant {
 
@@ -280,10 +280,11 @@ public class Chimera extends TameableAnimal implements Follower, CombatAssistant
         Location targetLocation = map.locationOf(target);
         Location myLocation = map.locationOf(this);
 
-        // Check if adjacent - if so, attack
+        // Check if adjacent - if so, attack using state-specific attack
         for (Exit exit : myLocation.getExits()) {
             if (exit.getDestination().equals(targetLocation)) {
-                return new AttackAction(target, exit.getName(), this.getIntrinsicWeapon());
+                Display display = new Display();
+                return currentState.createAttackAction(target, exit.getName(), targetLocation, map, display);
             }
         }
 
