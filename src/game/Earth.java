@@ -5,14 +5,9 @@ import edu.monash.fit2099.engine.displays.Display;
 import edu.monash.fit2099.engine.positions.DefaultGroundCreator;
 import edu.monash.fit2099.engine.positions.GameMap;
 import edu.monash.fit2099.engine.positions.World;
-import game.actors.Bear;
-import game.actors.Deer;
-import game.actors.Player;
-import game.actors.Wolf;
-import game.terrain.HazelnutTree;
-import game.terrain.Snow;
-import game.terrain.WildAppleTree;
-import game.terrain.YewBerryTree;
+import game.actors.*;
+import game.teleportation.TeleportDestination;
+import game.terrain.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,7 +21,7 @@ import java.util.List;
  * creates the survival scenario.
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 1.8
+ * @version 3.2
  */
 public class Earth extends World {
 
@@ -91,6 +86,7 @@ public class Earth extends World {
         this.addPlayer(player, gameMap.at(1, 1));
 
         populateWithAnimals(gameMap);
+        setupTeleportation(gameMap, plainsGameMap, player);
     }
 
     /**
@@ -113,6 +109,9 @@ public class Earth extends World {
         gameMap.addActor(new Deer(), gameMap.at(9, 1));
         gameMap.addActor(new Deer(), gameMap.at(27, 2));
 
+        gameMap.addActor(new Chimera(), gameMap.at(30, 2));
+
+
         gameMap.at(4, 1).setGround(new WildAppleTree());
         gameMap.at(30, 4).setGround(new WildAppleTree());
 
@@ -127,4 +126,46 @@ public class Earth extends World {
         gameMap.at(10, 9).setGround(new HazelnutTree(false));
         gameMap.at(23, 9).setGround(new YewBerryTree(false));
     }
+
+    /**
+     * Sets up the teleportation network between and within maps.
+     *
+     * @param forestMap the forest game map
+     * @param plainsMap the plains game map
+     * @param player the player character
+     */
+    private void setupTeleportation(GameMap forestMap, GameMap plainsMap, Player player) {
+        // FOREST: TeleDoor at (5, 5)
+        TeleDoor forestDoor = new TeleDoor();
+        // Destination 1: To Plains (10, 3)
+        forestDoor.addDestination(new TeleportDestination(
+                plainsMap.at(10, 3),
+                "Plains",
+                "Plains Portal"
+        ));
+        // Destination 2: Within Forest to (35, 8)
+        forestDoor.addDestination(new TeleportDestination(
+                forestMap.at(35, 8),
+                "Forest",
+                "Forest East Gate"
+        ));
+        forestMap.at(5, 5).setGround(forestDoor);
+
+        // PLAINS: TeleDoor at (15, 4)
+        TeleDoor plainsDoor = new TeleDoor();
+        // Destination 1: To Forest (25, 5)
+        plainsDoor.addDestination(new TeleportDestination(
+                forestMap.at(25, 5),
+                "Forest",
+                "Forest Portal"
+        ));
+        // Destination 2: Within Plains to (3, 1)
+        plainsDoor.addDestination(new TeleportDestination(
+                plainsMap.at(3, 1),
+                "Plains",
+                "Plains West"
+        ));
+        plainsMap.at(15, 4).setGround(plainsDoor);
+    }
+
 }
