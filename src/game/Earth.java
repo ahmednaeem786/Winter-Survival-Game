@@ -6,6 +6,7 @@ import edu.monash.fit2099.engine.positions.DefaultGroundCreator;
 import edu.monash.fit2099.engine.positions.GameMap;
 import edu.monash.fit2099.engine.positions.World;
 import game.actors.*;
+import game.items.TeleportCube;
 import game.teleportation.TeleportDestination;
 import game.terrain.*;
 
@@ -198,6 +199,21 @@ public class Earth extends World {
                 "Plains Center"
         ));
         plainsMap.at(20, 6).setGround(plainsCircle);
-    }
 
+        // TELEPORT CUBE: Add to player inventory
+        TeleportCube cube = new TeleportCube();
+        // Destination 1: To Plains (12, 2)
+        cube.addDestination(new TeleportDestination(
+                plainsMap.at(12, 2),
+                "Plains",
+                "Plains via Cube"
+        ));
+        // Destination 2: To Forest (30, 6)
+        cube.addDestination(new TeleportDestination(
+                forestMap.at(30, 6),
+                "Forest",
+                "Forest via Cube"
+        ));
+        player.addItemToInventory(cube);
+    }
 }
