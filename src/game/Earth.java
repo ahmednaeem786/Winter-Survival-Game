@@ -21,7 +21,7 @@ import java.util.List;
  * creates the survival scenario.
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 3.2
+ * @version 3.4
  */
 public class Earth extends World {
 
@@ -166,6 +166,38 @@ public class Earth extends World {
                 "Plains West"
         ));
         plainsMap.at(15, 4).setGround(plainsDoor);
+
+        // FOREST: Teleportation Circle at (20, 2)
+        TeleportationCircle forestCircle = new TeleportationCircle();
+        // Destination 1: To Plains (5, 6)
+        forestCircle.addDestination(new TeleportDestination(
+                plainsMap.at(5, 6),
+                "Plains",
+                "Plains Circle"
+        ));
+        // Destination 2: Within Forest to (10, 8)
+        forestCircle.addDestination(new TeleportDestination(
+                forestMap.at(10, 8),
+                "Forest",
+                "Forest South"
+        ));
+        forestMap.at(20, 2).setGround(forestCircle);
+
+        // PLAINS: Teleportation Circle at (20, 6)
+        TeleportationCircle plainsCircle = new TeleportationCircle();
+        // Destination 1: To Forest (15, 1)
+        plainsCircle.addDestination(new TeleportDestination(
+                forestMap.at(15, 1),
+                "Forest",
+                "Forest North"
+        ));
+        // Destination 2: Within Plains to (8, 3)
+        plainsCircle.addDestination(new TeleportDestination(
+                plainsMap.at(8, 3),
+                "Plains",
+                "Plains Center"
+        ));
+        plainsMap.at(20, 6).setGround(plainsCircle);
     }
 
 }
