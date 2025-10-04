@@ -11,4 +11,7 @@ public enum Abilities {
     SLEEPING,
     HYDRATION,
     TAMED,
+    BURNING,
+    CAN_BE_BURNED,
+    NEWLY_BURNED
 }

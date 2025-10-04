@@ -50,8 +50,8 @@ public class Earth extends World {
      * @throws Exception if there are issues with world construction
      */
     public void constructWorld() throws Exception {
-        DefaultGroundCreator groundCreator = new DefaultGroundCreator();
-        groundCreator.registerGround('.', Snow::new);
+        DefaultGroundCreator forestGroundCreator  = new DefaultGroundCreator();
+        forestGroundCreator.registerGround('.', Snow::new);
 
         List<String> map = Arrays.asList(
                 "........................................",
@@ -66,8 +66,26 @@ public class Earth extends World {
                 "........................................"
         );
 
-        GameMap gameMap = new GameMap("Forest", groundCreator, map);
+        GameMap gameMap = new GameMap("Forest", forestGroundCreator, map);
         this.addGameMap(gameMap);
+
+        // Create Plains map
+        DefaultGroundCreator plainsGroundCreator = new DefaultGroundCreator();
+        plainsGroundCreator.registerGround('.', Snow::new);
+
+        List<String> plainsMap = Arrays.asList(
+                ".........................",
+                ".........................",
+                ".........................",
+                ".........................",
+                ".........................",
+                ".........................",
+                ".........................",
+                "........................."
+        );
+
+        GameMap plainsGameMap = new GameMap("Plains", plainsGroundCreator, plainsMap);
+        this.addGameMap(plainsGameMap);
 
         Player player = new Player("Explorer", 'ඞ', 100);
         this.addPlayer(player, gameMap.at(1, 1));
