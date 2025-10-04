@@ -10,6 +10,8 @@ import edu.monash.fit2099.engine.displays.Menu;
 import edu.monash.fit2099.engine.positions.GameMap;
 import game.abilities.Abilities;
 import game.abilities.HydrationCapability;
+import game.behaviors.BurningManager;
+import game.items.Apple;
 import game.items.Bedroll;
 import game.items.Bottle;
 import game.weapons.BareFist;
@@ -23,6 +25,7 @@ import game.weapons.BareFist;
 public class Player extends Actor implements HydrationCapability {
     private BaseActorAttribute hydration;
     private BaseActorAttribute warmth;
+    private BurningManager burningManager;
 
     /**
      * Constructor for creating a new Player character.
@@ -43,10 +46,15 @@ public class Player extends Actor implements HydrationCapability {
         this.warmth = new BaseActorAttribute(30);
 
         this.enableAbility(Abilities.HYDRATION);
+        this.enableAbility(Abilities.CAN_BE_BURNED);
+
+        // Initialize burning manager
+        this.burningManager = new BurningManager();
 
         // Add starting items
         this.addItemToInventory(new Bedroll());
         this.addItemToInventory(new Bottle());
+        this.addItemToInventory(new Apple());
     }
 
     /**
@@ -64,6 +72,30 @@ public class Player extends Actor implements HydrationCapability {
      */
     @Override
     public Action playTurn(ActionList actions, Action lastAction, GameMap map, Display display) {
+        // Check if we need to add a new burning instance
+        if (this.hasAbility(Abilities.NEWLY_BURNED)) {
+            burningManager.addBurningInstance();
+            this.disableAbility(Abilities.NEWLY_BURNED);
+        }
+
+        // Apply burning damage
+        int burningDamage = burningManager.processBurning();
+        if (burningDamage > 0) {
+            this.hurt(burningDamage);
+            display.println(this + " is burning! (" + burningDamage + " damage)");
+        }
+
+        if (burningManager.isExpired()) {
+            this.disableAbility(Abilities.BURNING);
+        }
+
+        // Check if player is dead from burning or other damage
+        if (!this.isConscious()) {
+            display.println(name + " has perished! Game Over!");
+            display.println("GAME OVER - You did not survive!");
+            System.exit(0);
+        }
+
         // Check if player is unconscious (hydration or warmth at 0)
         if (hydration.get() <= 0 || warmth.get() <= 0) {
             display.println(name + " becomes unconscious! Game Over!");
