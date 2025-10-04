@@ -109,6 +109,12 @@ public class PoisonState implements ChimeraState {
         return venomedStrike;
     }
 
+    @Override
+    public Action createAttackAction(Actor target, String direction, Location targetLocation,
+                                     GameMap map, Display display) {
+        return new AttackAction(target, direction, getStateWeapon());
+    }
+
     /**
      * Attempts state transition from Poison to Fire or Default states.
      *

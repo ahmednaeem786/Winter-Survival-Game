@@ -159,4 +159,10 @@ public class DefaultChimeraState implements ChimeraState {
         }
         return new DoNothingAction();
     }
+
+    @Override
+    public Action createAttackAction(Actor target, String direction, Location targetLocation,
+                                     GameMap map, Display display) {
+        return new AttackAction(target, direction, getStateWeapon());
+    }
 }

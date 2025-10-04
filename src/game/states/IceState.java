@@ -202,6 +202,12 @@ public class IceState implements ChimeraState {
         return enemies;
     }
 
+    @Override
+    public Action createAttackAction(Actor target, String direction, Location targetLocation,
+                                     GameMap map, Display display) {
+        return new AttackAction(target, direction, getStateWeapon());
+    }
+
     /**
      * Executes defensive movement seeking tactical positioning.
      *

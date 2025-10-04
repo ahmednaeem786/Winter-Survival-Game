@@ -110,7 +110,7 @@ public class Earth extends World {
         gameMap.addActor(new Deer(), gameMap.at(9, 1));
         gameMap.addActor(new Deer(), gameMap.at(27, 2));
 
-        gameMap.addActor(new Chimera(), gameMap.at(30, 2));
+        gameMap.addActor(new Chimera(), gameMap.at(2, 2));
 
 
         gameMap.at(4, 1).setGround(new WildAppleTree());
