@@ -10,4 +10,5 @@ public enum BaseAttributes {
     HEALTH,
     STAMINA,
     MANA,
+    WARMTH,
 }

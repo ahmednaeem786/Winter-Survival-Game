@@ -5,6 +5,8 @@ import edu.monash.fit2099.engine.actions.ActionList;
 import edu.monash.fit2099.engine.actions.DoNothingAction;
 import edu.monash.fit2099.engine.actions.MoveActorAction;
 import edu.monash.fit2099.engine.actors.Actor;
+import edu.monash.fit2099.engine.actors.attributes.BaseActorAttribute;
+import edu.monash.fit2099.engine.actors.attributes.BaseAttributes;
 import edu.monash.fit2099.engine.displays.Display;
 import edu.monash.fit2099.engine.positions.Exit;
 import edu.monash.fit2099.engine.positions.GameMap;
@@ -47,6 +49,8 @@ public class Bear extends TameableAnimal implements Follower, CombatAssistant {
     public Bear() {
         super("Bear", 'B', 200, Set.of(Apple.class, YewBerry.class));
         this.setIntrinsicWeapon(new BearClaw());
+        // Initialize warmth attribute for animal spawning system
+        this.addNewStatistic(BaseAttributes.WARMTH, new BaseActorAttribute(50));
     }
 
     @Override
@@ -276,5 +280,42 @@ public class Bear extends TameableAnimal implements Follower, CombatAssistant {
         int deltaX = Math.abs(loc1.x() - loc2.x());
         int deltaY = Math.abs(loc1.y() - loc2.y());
         return deltaX <= 1 && deltaY <= 1 && !(deltaX == 0 && deltaY == 0);
+    }
+
+    /**
+     * Factory method to create a default Bear instance for spawning.
+     * Used by the animal spawning system.
+     *
+     * @return a new Bear instance with default characteristics
+     */
+    public static Bear createDefault() {
+        return new Bear();
+    }
+
+    /**
+     * Applies cold resistance effects to a Bear.
+     * Used when spawning from tundra terrain.
+     *
+     * @param bear the Bear to apply cold resistance to
+     */
+    public static void applyColdResistant(Bear bear) {
+        // Apply cold resistance capability/status
+        // For now, this is a placeholder - in a real implementation,
+        // this would add a cold resistance capability or status
+        // TODO: Implement cold resistance when capability system is available
+    }
+
+    /**
+     * Applies meadow foraging effects to a Bear.
+     * Used when spawning from meadow terrain.
+     *
+     * @param bear the Bear to apply foraging abilities to
+     */
+    public static void applyMeadowForaging(Bear bear) {
+        // Apply ground consumption capability
+        // This would allow the bear to consume items on the ground
+        // For now, this is a placeholder - in a real implementation,
+        // this would add a ground consumption capability
+        // TODO: Implement ground consumption when capability system is available
     }
 }
