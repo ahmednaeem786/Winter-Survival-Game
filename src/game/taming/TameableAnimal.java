@@ -3,9 +3,12 @@ package game.taming;
 import edu.monash.fit2099.engine.actions.Action;
 import edu.monash.fit2099.engine.actions.ActionList;
 import edu.monash.fit2099.engine.actors.Actor;
+import edu.monash.fit2099.engine.actors.attributes.ActorAttributeOperation;
+import edu.monash.fit2099.engine.actors.attributes.BaseAttributes;
 import edu.monash.fit2099.engine.displays.Display;
 import edu.monash.fit2099.engine.items.Item;
 import edu.monash.fit2099.engine.positions.GameMap;
+import edu.monash.fit2099.engine.positions.Location;
 import game.actions.AttackAction;
 import game.actions.TameAction;
 
@@ -153,6 +156,9 @@ public abstract class TameableAnimal extends Actor implements Tameable {
      */
     @Override
     public Action playTurn(ActionList actions, Action lastAction, GameMap map, Display display) {
+        // Handle warmth decrement each turn
+        handleWarmthDecrement(map);
+        
         if (tamed) {
             return tamedBehavior(actions, lastAction, map, display);
         } else {
@@ -190,5 +196,22 @@ public abstract class TameableAnimal extends Actor implements Tameable {
         }
 
         return actions;
+    }
+
+    /**
+     * Handles per-turn warmth decrement for animal spawning system.
+     * Animals lose 1 warmth per turn, and are removed when warmth reaches 0.
+     * This is called from the playTurn method.
+     */
+    private void handleWarmthDecrement(GameMap map) {
+        // Decrease warmth by 1 each turn
+        if (this.hasStatistic(BaseAttributes.WARMTH)) {
+            this.modifyAttribute(BaseAttributes.WARMTH, ActorAttributeOperation.DECREASE, 1);
+            
+            // If warmth reaches 0, the animal becomes unconscious and is removed
+            if (this.getAttribute(BaseAttributes.WARMTH) <= 0) {
+                map.removeActor(this);
+            }
+        }
     }
 }
