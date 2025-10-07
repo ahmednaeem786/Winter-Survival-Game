@@ -20,7 +20,7 @@ public class Cave extends Ground {
     private game.terrain.Snow.SpawnRule spawnRule;
 
     public Cave() {
-        super('c', "Cave");
+        super('C', "Cave");
         this.spawnRule = new CaveRule();
     }
 

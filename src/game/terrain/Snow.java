@@ -83,6 +83,11 @@ public class Snow extends Ground {
                 return;
             }
 
+            // Check if location is occupied
+            if (location.containsAnActor()) {
+                return;
+            }
+
             // Randomly select a species to spawn
             Class<? extends Actor> speciesClass = allowedSpecies.get(random.nextInt(allowedSpecies.size()));
             
