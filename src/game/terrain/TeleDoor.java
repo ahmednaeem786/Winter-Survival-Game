@@ -16,7 +16,7 @@ import java.util.List;
  * Using the door burns the surroundings at the destination.
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 1.9
+ * @version 2.1
  */
 public class TeleDoor extends Ground {
     private List<TeleportDestination> destinations;
@@ -81,6 +81,7 @@ public class TeleDoor extends Ground {
 
         /**
          * Burns all adjacent locations to the given location.
+         * Only burns locations that don't contain actors and aren't already on fire.
          *
          * @param center the center location
          */
@@ -88,9 +89,12 @@ public class TeleDoor extends Ground {
             var exits = center.getExits();
             for (var exit : exits) {
                 Location adjacentLocation = exit.getDestination();
+                Ground currentGround = adjacentLocation.getGround();
+
+                // Check if location can be burned (no actor, not already fire)
                 if (!adjacentLocation.containsAnActor() &&
-                        !(adjacentLocation.getGround() instanceof Fire)) {
-                    adjacentLocation.setGround(new Fire());
+                        currentGround.getDisplayChar() != '^') {
+                    adjacentLocation.setGround(new FireGround(3, adjacentLocation.getGround()));
                 }
             }
         }

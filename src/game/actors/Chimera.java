@@ -12,7 +12,6 @@ import edu.monash.fit2099.engine.positions.Exit;
 import edu.monash.fit2099.engine.positions.GameMap;
 import edu.monash.fit2099.engine.positions.Location;
 import game.abilities.Abilities;
-import game.actions.AttackAction;
 import game.items.Apple;
 import game.items.YewBerry;
 import game.states.ChimeraState;
@@ -38,7 +37,7 @@ import java.util.Set;
  * allowing it to be tamed by players and assist in combat while following its owner.
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 3.1
+ * @version 3.2
  */
 public class Chimera extends TameableAnimal implements Follower, CombatAssistant {
 
@@ -56,7 +55,7 @@ public class Chimera extends TameableAnimal implements Follower, CombatAssistant
      * Creates a new Chimera starting in default state.
      */
     public Chimera() {
-        super("Chimera", 'C', 350, Set.of(Apple.class, YewBerry.class));
+        super("Chimera", 'c', 350, Set.of(Apple.class, YewBerry.class));
         this.currentState = new DefaultChimeraState();
         this.setIntrinsicWeapon(currentState.getStateWeapon());
     }

@@ -10,7 +10,7 @@ import game.teleportation.TeleportDestination;
  * Action for teleporting an actor to a destination.
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 1.5
+ * @version 2.0
  */
 public class TeleportAction extends Action {
     private TeleportDestination destination;
@@ -36,14 +36,23 @@ public class TeleportAction extends Action {
      */
     @Override
     public String execute(Actor actor, GameMap map) {
+        Location currentLocation = map.locationOf(actor);
         Location targetLocation = destination.getTargetLocation();
 
-        // Move actor to destination
-        map.moveActor(actor, targetLocation);
+        // Check if trying to teleport to the same location
+        if (currentLocation.equals(targetLocation)) {
+            return actor.toString() + " cannot teleport to the same location!";
+        }
 
-        return actor + " teleports to "
-                + destination.getDescription()
-                + " using " + teleportType;
+        // Check if target location contains another actor
+        if (targetLocation.containsAnActor()) {
+            return actor + " cannot teleport to " + destination.getDescription() +
+                    " - location is occupied!";
+        }
+
+        // Rest of your teleport logic here...
+        map.moveActor(actor, targetLocation);
+        return actor.toString() + " teleports to " + destination.getDescription();
     }
 
     /**
@@ -54,8 +63,9 @@ public class TeleportAction extends Action {
      */
     @Override
     public String menuDescription(Actor actor) {
-        return actor + " teleports to " + destination.getDescription()
-                + " (" + destination.getMapName()
-                + ") using " + teleportType;
+        Location targetLocation = destination.getTargetLocation();
+        return actor + " uses " + teleportType + " to teleport to ("
+                + targetLocation.x() + ", " + targetLocation.y() + ") on "
+                + destination.getMapName();
     }
 }

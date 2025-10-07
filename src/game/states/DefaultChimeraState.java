@@ -30,7 +30,7 @@ import java.util.Random;
  * - Can only transition to Fire State
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 3.0
+ * @version 3.1
  */
 public class DefaultChimeraState implements ChimeraState {
     private static final Random random = new Random();
@@ -124,7 +124,7 @@ public class DefaultChimeraState implements ChimeraState {
      */
     @Override
     public char getStateDisplayChar() {
-        return 'C';
+        return 'c';
     }
 
     /**

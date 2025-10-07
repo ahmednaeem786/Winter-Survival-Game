@@ -8,6 +8,7 @@ import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.displays.Display;
 import edu.monash.fit2099.engine.positions.Exit;
 import edu.monash.fit2099.engine.positions.GameMap;
+import edu.monash.fit2099.engine.positions.Ground;
 import edu.monash.fit2099.engine.positions.Location;
 import edu.monash.fit2099.engine.weapons.IntrinsicWeapon;
 import game.abilities.Abilities;
@@ -15,7 +16,7 @@ import game.actions.AttackAction;
 import game.status.BurnEffect;
 import game.status.StatusRecipient;
 import game.status.StatusRecipientRegistry;
-import game.terrain.Fire;
+import game.terrain.FireGround;
 import game.weapons.FlameBreath;
 
 import java.util.ArrayList;
@@ -261,7 +262,8 @@ public class FireState implements ChimeraState {
             int burned = 0;
             for (Location loc : validLocations) {
                 if (burned >= 2) break;
-                loc.setGround(new Fire());
+                Ground originalGround = loc.getGround();
+                loc.setGround(new FireGround(3, originalGround));
                 burned++;
             }
 

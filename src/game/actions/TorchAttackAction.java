@@ -81,7 +81,7 @@ public class TorchAttackAction extends Action {
 
       // spawning temporary fire on adjacent tiles and not on the attacker's own tile
       spawnFireAround(actor, map, 5);
-      sb.append(" Fire spawns around " + actor + " and will burn for 5 turns.");
+      sb.append("\nFire spawns around " + actor + " and will burn for 5 turns.");
       return sb.toString();
     } else {
       return actor + " swings a torch at " + target + " (" + direction + ") but misses.";

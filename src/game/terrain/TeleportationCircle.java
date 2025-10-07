@@ -17,7 +17,7 @@ import java.util.Random;
  * Using the circle burns one random surrounding location at the SOURCE.
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 1.3
+ * @version 2.0
  */
 public class TeleportationCircle extends Ground {
     private List<TeleportDestination> destinations;
@@ -93,8 +93,11 @@ public class TeleportationCircle extends Ground {
             // Find all valid locations to burn
             for (var exit : exits) {
                 Location adjacentLocation = exit.getDestination();
+                Ground currentGround = adjacentLocation.getGround();
+
+                // Check if location can be burned (no actor, not already fire)
                 if (!adjacentLocation.containsAnActor() &&
-                        !(adjacentLocation.getGround() instanceof Fire)) {
+                        currentGround.getDisplayChar() != '^') {
                     validLocations.add(adjacentLocation);
                 }
             }
@@ -102,7 +105,8 @@ public class TeleportationCircle extends Ground {
             // Burn one random location if any valid
             if (!validLocations.isEmpty()) {
                 Location toBurn = validLocations.get(random.nextInt(validLocations.size()));
-                toBurn.setGround(new Fire());
+                Ground originalGround = toBurn.getGround();
+                toBurn.setGround(new FireGround(3, originalGround));
                 return "(Source location catches fire!)";
             }
 

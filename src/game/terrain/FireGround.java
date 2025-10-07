@@ -34,9 +34,6 @@ public class FireGround extends Ground{
   /** Remaining ticks the fire will persist. */
   private int remainingTurns;
 
-  /** Ground to revert to when the fire expires (e.g., Dirt). */
-  private final Ground underlying;
-
   /**
    * Create a FireGround that lasts for {@code duration} ticks and reverts to
    * {@code underlying} when expired.
@@ -47,7 +44,6 @@ public class FireGround extends Ground{
   public FireGround(int duration, Ground underlying) {
     super('^', "Fire Ground");
     this.remainingTurns = duration;
-    this.underlying = underlying;
   }
 
   /**
@@ -81,7 +77,7 @@ public class FireGround extends Ground{
     //Decreasing remaining lifetime and reverting to underlying ground as soon as expired.
     remainingTurns--;
     if (remainingTurns <= 0) {
-      location.setGround(underlying);
+      location.setGround(new Dirt());
     }
   }
 }
