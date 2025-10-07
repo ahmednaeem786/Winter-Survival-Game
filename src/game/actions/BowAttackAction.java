@@ -79,7 +79,7 @@ public class BowAttackAction extends Action {
     }
 
     // 25% hit chance
-    if (rand.nextInt(100) < 99) {
+    if (rand.nextInt(100) < 25) {
       // Applying immediate damage.
       target.hurt(5);
       StringBuilder result = new StringBuilder(
