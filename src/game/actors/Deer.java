@@ -52,7 +52,7 @@ public class Deer extends TameableAnimal implements ItemCollector, Follower {
      */
     public Deer() {
         super("Deer", 'd', 50, Set.of(Apple.class, YewBerry.class));
-        // Initialize warmth attribute for animal spawning system (reduced for testing)
+        // Initialize warmth attribute for animal spawning system
         this.addNewStatistic(BaseAttributes.WARMTH, new BaseActorAttribute(10));
     }
 
@@ -224,6 +224,12 @@ public class Deer extends TameableAnimal implements ItemCollector, Follower {
      */
     private Action wanderRandomly(GameMap map) {
         Location currentLocation = map.locationOf(this);
+        
+        // If the deer is no longer on the map (e.g., died from consuming poison), return do nothing
+        if (currentLocation == null) {
+            return new DoNothingAction();
+        }
+        
         List<Exit> exits = new ArrayList<>(currentLocation.getExits());
 
         if (!exits.isEmpty()) {

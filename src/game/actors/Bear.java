@@ -187,6 +187,12 @@ public class Bear extends TameableAnimal implements Follower, CombatAssistant {
      */
     private Action wanderRandomly(GameMap map) {
         Location currentLocation = map.locationOf(this);
+        
+        // If the bear is no longer on the map (e.g., died from consuming poison), return do nothing
+        if (currentLocation == null) {
+            return new DoNothingAction();
+        }
+        
         List<Exit> exits = new ArrayList<>(currentLocation.getExits());
 
         if (!exits.isEmpty()) {
