@@ -55,9 +55,10 @@ public class FrostBiteEffect implements StatusEffect {
   @Override
   public void applyEffect(Actor target, GameMap map) {
 
-//    if (target.hasAbility(SPAWNED_FROM_TUNDRA)) {
-//      return;
-//    }
+    // Animals with COLD_RESISTANCE (spawned from Tundra) are immune to frostbite
+    if (target.hasAbility(game.abilities.Abilities.COLD_RESISTANCE)) {
+      return;
+    }
 
     //Only applying if the actor has the WARMTH statistic
     if (target.hasStatistic(WARMTH)) {
