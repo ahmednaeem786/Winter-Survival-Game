@@ -5,8 +5,6 @@ import edu.monash.fit2099.engine.actions.ActionList;
 import edu.monash.fit2099.engine.actions.DoNothingAction;
 import edu.monash.fit2099.engine.actions.MoveActorAction;
 import edu.monash.fit2099.engine.actors.Actor;
-import edu.monash.fit2099.engine.actors.attributes.ActorAttributeOperation;
-import edu.monash.fit2099.engine.actors.attributes.BaseAttributes;
 import edu.monash.fit2099.engine.displays.Display;
 import edu.monash.fit2099.engine.positions.Exit;
 import edu.monash.fit2099.engine.positions.GameMap;
@@ -14,6 +12,9 @@ import edu.monash.fit2099.engine.positions.Location;
 import edu.monash.fit2099.engine.weapons.IntrinsicWeapon;
 import game.abilities.Abilities;
 import game.actions.AttackAction;
+import game.status.PoisonEffect;
+import game.status.StatusRecipient;
+import game.status.StatusRecipientRegistry;
 import game.weapons.VenomedStrike;
 
 import java.util.*;
@@ -32,7 +33,7 @@ import java.util.*;
  * - Maintains distance to let poison effects work
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 1.9
+ * @version 3.3
  */
 public class PoisonState implements ChimeraState {
 
@@ -40,11 +41,27 @@ public class PoisonState implements ChimeraState {
 
     private final IntrinsicWeapon venomedStrike = new VenomedStrike();
 
-    private final Map<Actor, Integer> poisonedActors = new HashMap<>();
+    private final Map<Actor, PoisonTracker> poisonedActors = new HashMap<>();
 
     private int turnsSinceAttack = 0;
 
     private int turnsInState = 0;
+
+    // Poison effect constants
+    private static final int POISON_DAMAGE_PER_TURN = 2;
+    private static final int POISON_DURATION = 3;
+
+    /**
+     * Tracks poison information for display purposes
+     */
+    private static class PoisonTracker {
+        int turnsRemaining;
+
+        PoisonTracker(int turns) {
+            this.turnsRemaining = turns;
+        }
+    }
+
 
     /**
      * Executes the poison state behavior for the chimera.
@@ -66,8 +83,8 @@ public class PoisonState implements ChimeraState {
                                     GameMap map, Display display) {
         turnsInState++;
 
-        // Process poison DOT effects first
-        processPoisonEffects(map, display);
+        // Display poison status for all poisoned actors
+        updatePoisonTracking(map, display);
 
         Location currentLocation = map.locationOf(chimera);
 
@@ -87,10 +104,8 @@ public class PoisonState implements ChimeraState {
 
                 // Attack non-tamed actors (or all actors if chimera is wild)
                 if (!target.hasAbility(Abilities.TAMED)) {
-
-                    applyPoisonEffect(target, display);
                     turnsSinceAttack = 0;
-                    return new AttackAction(target, exit.getName(), venomedStrike);
+                    return new PoisonAttackAction(target, exit.getName(), venomedStrike, display);
                 }
             }
         }
@@ -112,7 +127,7 @@ public class PoisonState implements ChimeraState {
     @Override
     public Action createAttackAction(Actor target, String direction, Location targetLocation,
                                      GameMap map, Display display) {
-        return new AttackAction(target, direction, getStateWeapon());
+        return new PoisonAttackAction(target, direction, getStateWeapon(), display);
     }
 
     /**
@@ -129,7 +144,7 @@ public class PoisonState implements ChimeraState {
 
         if (turnsInState >= 4) {
             // Poison -> Fire after 3 turns: 50% chance, 50% stay Poison
-            if (chance < 50) {
+            if (chance < 1) { //change to 50
                 display.println("The poison boils away as the chimera erupts in flames!");
                 return new FireState();
             }
@@ -179,65 +194,35 @@ public class PoisonState implements ChimeraState {
     }
 
     /**
-     * Applies poison DOT effect to a target actor.
-     * Only poisons non-tamed actors to avoid harming allies.
+     * Updates poison tracking and displays status messages for poisoned actors.
+     * Removes dead actors from tracking.
      */
-    private void applyPoisonEffect(Actor target, Display display) {
-        poisonedActors.put(target, 3); // 3 turns of poison
-        display.println(target + " has been poisoned! (-2 health per turn for 3 turns)");
-    }
-
-    /**
-     * Processes damage-over-time effects for all poisoned actors.
-     *
-     * DOT Processing:
-     * 1. Iterate through all poisoned actors
-     * 2. Apply -2 health damage per turn
-     * 3. Decrement remaining poison turns
-     * 4. Remove actors when poison expires or they die
-     *
-     * @param display the display for DOT damage messages
-     */
-    private void processPoisonEffects(GameMap map, Display display) {
-        Iterator<Map.Entry<Actor, Integer>> iterator = poisonedActors.entrySet().iterator();
+    private void updatePoisonTracking(GameMap map, Display display) {
+        Iterator<Map.Entry<Actor, PoisonTracker>> iterator = poisonedActors.entrySet().iterator();
 
         while (iterator.hasNext()) {
-            Map.Entry<Actor, Integer> entry = iterator.next();
-            Actor poisonedActor = entry.getKey();
-            int turnsRemaining = entry.getValue();
+            Map.Entry<Actor, PoisonTracker> entry = iterator.next();
+            Actor actor = entry.getKey();
+            PoisonTracker tracker = entry.getValue();
 
-            if (poisonedActor == null) {
+            // Check if actor is dead or unconscious
+            if (!actor.isConscious() || actor.getAttribute(edu.monash.fit2099.engine.actors.attributes.BaseAttributes.HEALTH) <= 0) {
                 iterator.remove();
-                continue;
-            }
-
-            // Apply poison damage
-            poisonedActor.modifyAttribute(BaseAttributes.HEALTH,
-                    ActorAttributeOperation.DECREASE, 2);
-
-            int hpAfter = poisonedActor.getAttribute(BaseAttributes.HEALTH);
-            int nextTurns = Math.max(0, turnsRemaining - 1);
-
-            display.println(poisonedActor + " (" + hpAfter + "/" +
-                    poisonedActor.getMaximumAttribute(BaseAttributes.HEALTH)
-                    + ") takes 2 poison damage! (" +
-                    nextTurns + " turns remaining)");
-
-            // Death check: remove immediately
-            if (hpAfter <= 0 || !poisonedActor.isConscious()) {
-                iterator.remove();
-                if (map != null && map.contains(poisonedActor)) {
-                    map.removeActor(poisonedActor);
+                if (map != null && map.contains(actor)) {
+                    map.removeActor(actor);
+                    display.println(actor + " succumbs to poison and dies!\n");
                 }
-                display.println(poisonedActor + " succumbs to poison.\n");
                 continue;
             }
 
-            if (nextTurns == 0) {
-                iterator.remove();
-                display.println(poisonedActor + " recovers from poison.\n");
+            // Display poison status
+            if (tracker.turnsRemaining > 0) {
+                display.println(actor + " is poisoned! (" + tracker.turnsRemaining + " turns remaining)");
+                tracker.turnsRemaining--;
             } else {
-                entry.setValue(nextTurns);
+                // Poison expired
+                iterator.remove();
+                display.println(actor + " recovers from poison.\n");
             }
         }
     }
@@ -287,5 +272,52 @@ public class PoisonState implements ChimeraState {
             }
         }
         return new DoNothingAction();
+    }
+
+    /**
+     * Processes damage-over-time effects for all poisoned actors.
+     *
+     * DOT Processing:
+     * 1. Iterate through all poisoned actors
+     * 2. Apply -2 health damage per turn
+     * 3. Decrement remaining poison turns
+     * 4. Remove actors when poison expires or they die
+     *
+     */
+    private class PoisonAttackAction extends AttackAction {
+        private Actor target;
+        private Display display;
+
+        public PoisonAttackAction(Actor target, String direction, IntrinsicWeapon weapon, Display disp) {
+            super(target, direction, weapon);
+            this.target = target;
+            this.display = disp;
+        }
+
+        @Override
+        public String execute(Actor actor, GameMap map) {
+            String result = super.execute(actor, map);
+
+            // Apply poison status effect to the target
+            if (target != null && target.isConscious()) {
+                applyPoisonEffect(target);
+            }
+
+            return result;
+        }
+
+        /**
+         * Applies poison status effect to the target actor.
+         *
+         * @param target the actor to apply poison to
+         */
+        private void applyPoisonEffect(Actor target) {
+            StatusRecipient recipient = StatusRecipientRegistry.getRecipient(target);
+            if (recipient != null) {
+                recipient.addStatusEffect(new PoisonEffect(POISON_DURATION, POISON_DAMAGE_PER_TURN));
+                poisonedActors.put(target, new PoisonTracker(POISON_DURATION));
+                display.println(target + " has been poisoned! (-2 HP per turn for 3 turns)");
+            }
+        }
     }
 }

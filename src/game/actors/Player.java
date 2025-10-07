@@ -9,6 +9,7 @@ import edu.monash.fit2099.engine.displays.Menu;
 import edu.monash.fit2099.engine.positions.GameMap;
 import game.abilities.Abilities;
 import game.abilities.HydrationCapability;
+import game.items.Apple;
 import game.items.Bedroll;
 import game.items.Bottle;
 import game.weapons.BareFist;
@@ -17,7 +18,7 @@ import game.weapons.BareFist;
  * Class representing the Player (Explorer).
  * The Explorer has hydration and warmth levels that decrease each turn.
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 3.7
+ * @version 3.8
  */
 public class Player extends GameActor implements HydrationCapability {
     private BaseActorAttribute hydration;
@@ -45,6 +46,7 @@ public class Player extends GameActor implements HydrationCapability {
         // Add starting items
         this.addItemToInventory(new Bedroll());
         this.addItemToInventory(new Bottle());
+        this.addItemToInventory(new Apple());
     }
 
     /**
