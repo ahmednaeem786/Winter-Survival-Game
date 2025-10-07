@@ -14,6 +14,9 @@ import edu.monash.fit2099.engine.positions.Location;
 import edu.monash.fit2099.engine.weapons.IntrinsicWeapon;
 import game.abilities.Abilities;
 import game.actions.AttackAction;
+import game.status.FrostBiteEffect;
+import game.status.StatusRecipient;
+import game.status.StatusRecipientRegistry;
 import game.weapons.IceShard;
 
 import java.util.ArrayList;
@@ -32,13 +35,17 @@ import java.util.Random;
  * - Seeks defensive positions with fewer exits when possible
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 2.4
+ * @version 3.1
  */
 public class IceState implements ChimeraState {
     private static final Random random = new Random();
     private final IntrinsicWeapon iceShard = new IceShard();
     private int turnsAlone = 0;
     private int turnsInState = 0;
+
+    // Frostbite effect constants
+    private static final int FROSTBITE_WARMTH_REDUCTION = 2;
+    private static final int FROSTBITE_DURATION = 4;
 
     /**
      * Executes the ice state behavior for the chimera.
@@ -71,7 +78,7 @@ public class IceState implements ChimeraState {
                 if (adjacentLocation.containsAnActor()) {
                     Actor target = adjacentLocation.getActor();
                     if (!target.hasAbility(Abilities.TAMED)) {
-                        return new AttackAction(target, exit.getName(), iceShard);
+                        return new IceAttackAction(target, exit.getName(), iceShard, display);
                     }
                 }
             }
@@ -246,5 +253,44 @@ public class IceState implements ChimeraState {
             }
         }
         return new DoNothingAction();
+    }
+
+    /**
+     * Custom attack action that applies frostbite effect to the target.
+     */
+    private class IceAttackAction extends AttackAction {
+        private Actor target;
+        private Display display;
+
+        public IceAttackAction(Actor target, String direction, IntrinsicWeapon weapon, Display disp) {
+            super(target, direction, weapon);
+            this.target = target;
+            this.display = disp;
+        }
+
+        @Override
+        public String execute(Actor actor, GameMap map) {
+            String result = super.execute(actor, map);
+
+            // Apply frostbite status effect to the target
+            if (target != null && target.isConscious()) {
+                applyFrostbiteEffect(target);
+            }
+
+            return result;
+        }
+
+        /**
+         * Applies frostbite status effect to the target actor.
+         *
+         * @param target the actor to apply frostbite to
+         */
+        private void applyFrostbiteEffect(Actor target) {
+            StatusRecipient recipient = StatusRecipientRegistry.getRecipient(target);
+            if (recipient != null) {
+                recipient.addStatusEffect(new FrostBiteEffect(FROSTBITE_DURATION, FROSTBITE_WARMTH_REDUCTION));
+                display.println(target + " is afflicted with frostbite! (WARMTH -2 per turn for 4 turns)");
+            }
+        }
     }
 }

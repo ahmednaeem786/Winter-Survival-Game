@@ -12,6 +12,9 @@ import edu.monash.fit2099.engine.positions.Location;
 import edu.monash.fit2099.engine.weapons.IntrinsicWeapon;
 import game.abilities.Abilities;
 import game.actions.AttackAction;
+import game.status.BurnEffect;
+import game.status.StatusRecipient;
+import game.status.StatusRecipientRegistry;
 import game.terrain.Fire;
 import game.weapons.FlameBreath;
 
@@ -33,13 +36,17 @@ import java.util.Random;
  * - 40% chance to remain in Fire State each turn
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 2.9
+ * @version 3.3
  */
 public class FireState implements ChimeraState {
     private static final Random random = new Random();
     private final IntrinsicWeapon flameBreath = new FlameBreath();
     private int enemiesAttacked = 0;
     private int turnsInState = 0;
+
+    // Burn effect constants
+    private static final int BURN_DAMAGE_PER_TURN = 5;
+    private static final int BURN_DURATION = 5;
 
     /**
      * Executes the fire state behavior for the chimera.
@@ -117,7 +124,7 @@ public class FireState implements ChimeraState {
 
         if (turnsInState >= 3) {
             // Fire -> Ice after 3 turns: 60% chance, 40% stay Fire
-            if (chance < 1) {
+            if (chance < 60) {
                 display.println("\nThe flames die down as ice crystals form around the chimera!");
                 return new IceState();
             }
@@ -192,6 +199,7 @@ public class FireState implements ChimeraState {
      * Custom attack action that burns two surrounding locations of the target.
      */
     private class FireAttackAction extends AttackAction {
+        private Actor target;
         private Location targetLocation;
         private Display display;
 
@@ -199,6 +207,7 @@ public class FireState implements ChimeraState {
                                 Location targetLoc, Display disp) {
             super(target, direction, weapon);
             this.targetLocation = targetLoc;
+            this.target = target;
             this.display = disp;
         }
 
@@ -206,10 +215,28 @@ public class FireState implements ChimeraState {
         public String execute(Actor actor, GameMap map) {
             String result = super.execute(actor, map);
 
+            // Apply burning status effect to the target
+            if (target != null && target.isConscious()) {
+                applyBurningEffect(target);
+            }
+
             // Burn two random surrounding locations of the target
             burnSurroundings(targetLocation);
 
             return result + " (Fire spreads around the target!)";
+        }
+
+        /**
+         * Applies burning status effect to the target actor.
+         *
+         * @param target the actor to apply burning to
+         */
+        private void applyBurningEffect(Actor target) {
+            StatusRecipient recipient = StatusRecipientRegistry.getRecipient(target);
+            if (recipient != null) {
+                recipient.addStatusEffect(new BurnEffect(BURN_DURATION, BURN_DAMAGE_PER_TURN));
+                display.println(target + " is set ablaze! (5 damage per turn for 5 turns)");
+            }
         }
 
         /**
