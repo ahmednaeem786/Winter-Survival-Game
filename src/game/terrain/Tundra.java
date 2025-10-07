@@ -14,7 +14,7 @@ import java.util.Random;
 
 /**
  * A class representing tundra terrain that can spawn cold-resistant animals.
- * @author REQ2 Implementation
+ * @author Reynard Andyti Putra Kaban
  */
 public class Tundra extends Ground {
     private static final double SPAWN_CHANCE = 0.05; // 5% chance

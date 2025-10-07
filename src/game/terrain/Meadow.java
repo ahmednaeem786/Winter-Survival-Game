@@ -14,7 +14,7 @@ import java.util.Random;
 
 /**
  * A class representing meadow terrain that can spawn animals with foraging abilities.
- * @author REQ2 Implementation
+ * @author Reynard Andyti Putra Kaban
  */
 public class Meadow extends Ground {
     private static final int SPAWN_CADENCE = 7; // Every 7 turns
