@@ -149,8 +149,10 @@ public abstract class TameableAnimal extends GameActor implements Tameable {
     public Action playTurn(ActionList actions, Action lastAction, GameMap map, Display display) {
         tickStatusEffects(map);
         
-        // Handle animal warmth decrease and unconsciousness
-        handleWarmthDecrease(map);
+        // Check if animal has GROUND_CONSUMPTION ability and consume items on ground
+        if (this.hasAbility(game.abilities.Abilities.GROUND_CONSUMPTION)) {
+            consumeGroundItems(map);
+        }
         
         if (tamed) {
             return tamedBehavior(actions, lastAction, map, display);
@@ -160,30 +162,33 @@ public abstract class TameableAnimal extends GameActor implements Tameable {
     }
     
     /**
-     * Handles warmth decrease for animals and unconsciousness when warmth reaches 0.
-     * Animals lose 1 warmth each turn, and become unconscious when warmth reaches 0.
-     * Animals with cold resistance don't lose warmth.
+     * Consumes any consumable items on the ground at the animal's current location.
+     * This mimics the behavior of the Explorer consuming ground items.
      * 
      * @param map the current game map
      */
-    private void handleWarmthDecrease(GameMap map) {
-        // Check if animal has warmth attribute
-        if (this.hasStatistic(edu.monash.fit2099.engine.actors.attributes.BaseAttributes.WARMTH)) {
-            // Only decrease warmth if animal doesn't have cold resistance
-            if (!this.hasAbility(game.abilities.Abilities.COLD_RESISTANCE)) {
-                // Decrease warmth by 1 each turn
-                this.modifyAttribute(
-                    edu.monash.fit2099.engine.actors.attributes.BaseAttributes.WARMTH,
-                    edu.monash.fit2099.engine.actors.attributes.ActorAttributeOperation.DECREASE,
-                    1
-                );
+    private void consumeGroundItems(GameMap map) {
+        edu.monash.fit2099.engine.positions.Location currentLocation = map.locationOf(this);
+        if (currentLocation == null) {
+            return;
+        }
+        
+        // Get all items at current location
+        java.util.List<edu.monash.fit2099.engine.items.Item> items = new java.util.ArrayList<>(currentLocation.getItems());
+        
+        for (edu.monash.fit2099.engine.items.Item item : items) {
+            // Check if item is consumable using capability pattern (same pattern as player)
+            java.util.Optional<game.items.ConsumableItem> consumableOpt = item.asCapability(game.items.ConsumableItem.class);
+            if (consumableOpt.isPresent()) {
+                game.items.ConsumableItem consumable = consumableOpt.get();
                 
-                // Check if warmth has reached 0
-                int currentWarmth = this.getAttribute(edu.monash.fit2099.engine.actors.attributes.BaseAttributes.WARMTH);
-                if (currentWarmth <= 0) {
-                    // Animal becomes unconscious due to cold
-                    map.removeActor(this);
-                }
+                // Remove item from ground and consume it
+                currentLocation.removeItem(item);
+                String consumeMessage = consumable.consume(this, map);
+                System.out.println(consumeMessage);
+                
+                // Only consume one item per turn
+                break;
             }
         }
     }

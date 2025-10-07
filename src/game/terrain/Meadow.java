@@ -53,12 +53,8 @@ public class Meadow extends Ground {
         public void applySpawnEffects(Actor spawned, GameMap map) {
             // Apply ground consumption capability to Meadow-spawned animals
             // This allows them to consume items on the ground like the Explorer
-            if (spawned instanceof game.taming.TameableAnimal) {
-                game.taming.TameableAnimal animal = (game.taming.TameableAnimal) spawned;
-                
-                // Enable ground consumption ability
-                animal.enableAbility(game.abilities.Abilities.GROUND_CONSUMPTION);
-            }
+            // All actors spawned from Meadow get this ability
+            spawned.enableAbility(game.abilities.Abilities.GROUND_CONSUMPTION);
         }
     }
 

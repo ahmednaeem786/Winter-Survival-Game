@@ -65,15 +65,194 @@ public class Earth extends World {
     }
 
     /**
-     * Override the game loop to increment the global turn counter for spawning.
+     * Override the game loop to increment the global turn counter for spawning
+     * and handle animal warmth decrease every turn.
+     * Also ensures that only actions from actors on the player's current map are displayed.
      */
     @Override
     protected void gameLoop() throws GameEngineException {
         // Increment the global turn counter for spawning
         game.terrain.Snow.SpawnHelper.incrementTurn();
         
-        // Call the parent game loop
-        super.gameLoop();
+        // Handle animal warmth decrease every turn
+        handleAnimalWarmthDecrease();
+        
+        // Get the player's current map
+        GameMap playersMap = actorLocations.locationOf(player).map();
+        
+        // Tick over all the maps (for terrain ticks, etc.)
+        for (GameMap gameMap : gameMaps) {
+            gameMap.tick();
+        }
+        
+        // Draw the player's map
+        playersMap.draw(display);
+        
+        // Process all the actors, but only display actions for actors on the player's map
+        for (edu.monash.fit2099.engine.actors.Actor actor : actorLocations) {
+            if (stillRunning()) {
+                processActorTurnWithMapFilter(actor, playersMap);
+            }
+        }
+    }
+    
+    /**
+     * Process an actor's turn, but only display the result if the actor is on the specified map.
+     * This is a custom version of the parent class's processActorTurn method.
+     * 
+     * @param actor the actor whose turn is being processed
+     * @param playersMap the map the player is currently on (used to filter display output)
+     */
+    private void processActorTurnWithMapFilter(edu.monash.fit2099.engine.actors.Actor actor, GameMap playersMap) {
+        // Get actor's location and map
+        edu.monash.fit2099.engine.positions.Location here = actorLocations.locationOf(actor);
+        GameMap map = here.map();
+        
+        // Prepare all allowable actions for this actor
+        edu.monash.fit2099.engine.actions.ActionList actions = prepareActorActions(actor, here);
+        
+        // Use a dummy display for actors not on the player's map to suppress their messages
+        edu.monash.fit2099.engine.displays.Display actorDisplay = (map == playersMap) ? display : new edu.monash.fit2099.engine.displays.Display();
+        
+        // Get the action from the actor
+        edu.monash.fit2099.engine.actions.Action action = actor.playTurn(actions, lastActionMap.get(actor), map, actorDisplay);
+        
+        // Record the action
+        lastActionMap.put(actor, action);
+        
+        // Execute the action
+        String result = action.execute(actor, map);
+        
+        // Only display the result if the actor is on the player's current map
+        if (map == playersMap) {
+            display.println(result);
+        }
+    }
+    
+    /**
+     * Prepare all allowable actions for an actor at a specific location.
+     * This replicates the logic from World.prepareAllowableActions.
+     * 
+     * @param actor the actor
+     * @param here the actor's current location
+     * @return list of all allowable actions
+     */
+    private edu.monash.fit2099.engine.actions.ActionList prepareActorActions(
+            edu.monash.fit2099.engine.actors.Actor actor, 
+            edu.monash.fit2099.engine.positions.Location here) {
+        
+        edu.monash.fit2099.engine.actions.ActionList actions = new edu.monash.fit2099.engine.actions.ActionList();
+        
+        // Actions from items in inventory
+        for (edu.monash.fit2099.engine.items.Item item : actor.getItemInventory()) {
+            actions.add(item.allowableActions(actor, here.map()));
+            actions.add(item.getDropAction(actor));
+        }
+        
+        // Actions from current ground
+        actions.add(here.getGround().allowableActions(actor, here, ""));
+        
+        // Actions from surrounding locations
+        for (edu.monash.fit2099.engine.positions.Exit exit : here.getExits()) {
+            edu.monash.fit2099.engine.positions.Location destination = exit.getDestination();
+            
+            if (actorLocations.isAnActorAt(destination)) {
+                edu.monash.fit2099.engine.actors.Actor otherActor = actorLocations.getActorAt(destination);
+                actions.add(otherActor.allowableActions(actor, exit.getName(), here.map()));
+                for (edu.monash.fit2099.engine.items.Item item : actor.getItemInventory()) {
+                    actions.add(item.allowableActions(otherActor, destination));
+                }
+            } else {
+                actions.add(destination.getGround().allowableActions(actor, destination, exit.getName()));
+            }
+            actions.add(destination.getMoveAction(actor, exit.getName(), exit.getHotKey()));
+        }
+        
+        // Actions from items on the ground
+        for (edu.monash.fit2099.engine.items.Item item : here.getItems()) {
+            actions.add(item.allowableActions(here));
+            actions.add(item.getPickUpAction(actor));
+        }
+        
+        // Add do-nothing option
+        actions.add(new edu.monash.fit2099.engine.actions.DoNothingAction());
+        
+        return actions;
+    }
+    
+    /**
+     * Handles warmth decrease for all animals every turn.
+     * Animals lose 1 warmth each turn, and become unconscious when warmth reaches 0.
+     * Animals with cold resistance don't lose warmth.
+     * Only displays status messages for animals on the player's current map.
+     */
+    private void handleAnimalWarmthDecrease() {
+        // Get the player's current map
+        GameMap playersMap = actorLocations.locationOf(player).map();
+        
+        // Process all actors on all maps
+        for (GameMap gameMap : gameMaps) {
+            // Check if this is the player's current map
+            boolean isPlayersMap = (gameMap == playersMap);
+            
+            // Get all actors on this map
+            for (int x = 0; x < gameMap.getXRange().max(); x++) {
+                for (int y = 0; y < gameMap.getYRange().max(); y++) {
+                    try {
+                        if (gameMap.at(x, y).containsAnActor()) {
+                            Actor actor = gameMap.at(x, y).getActor();
+                            
+                            // Check if actor has warmth attribute (only animals with warmth need processing)
+                            if (actor.hasStatistic(edu.monash.fit2099.engine.actors.attributes.BaseAttributes.WARMTH)) {
+                                // Check if actor has cold resistance
+                                if (actor.hasAbility(game.abilities.Abilities.COLD_RESISTANCE)) {
+                                    // Animal is immune to cold - display status message
+                                    if (isPlayersMap) {
+                                        System.out.println(actor + " is immune to cold and feels comfortable in the frozen tundra.");
+                                    }
+                                } else {
+                                    // Decrease warmth by 1 each turn for non-resistant animals
+                                    actor.modifyAttribute(
+                                        edu.monash.fit2099.engine.actors.attributes.BaseAttributes.WARMTH,
+                                        edu.monash.fit2099.engine.actors.attributes.ActorAttributeOperation.DECREASE,
+                                        1
+                                    );
+                                    
+                                    // Check current warmth level
+                                    int currentWarmth = actor.getAttribute(edu.monash.fit2099.engine.actors.attributes.BaseAttributes.WARMTH);
+                                    
+                                    // Only show status messages for animals on the player's map
+                                    if (isPlayersMap) {
+                                        // Show status messages based on warmth level
+                                        if (currentWarmth <= 0) {
+                                            // Animal becomes unconscious due to cold
+                                            System.out.println(actor + " becomes unconscious due to extreme cold and collapses!");
+                                        } else if (currentWarmth <= 3) {
+                                            // Animal is very cold
+                                            System.out.println(actor + " shivers violently from the cold!");
+                                        } else if (currentWarmth <= 5) {
+                                            // Animal is cold
+                                            System.out.println(actor + " feels very cold and is struggling to stay warm.");
+                                        } else if (currentWarmth <= 8) {
+                                            // Animal is getting cold
+                                            System.out.println(actor + " feels cold and is looking for warmth.");
+                                        }
+                                    }
+                                    
+                                    // Remove actor from map if warmth reaches 0 (regardless of which map)
+                                    if (currentWarmth <= 0) {
+                                        gameMap.removeActor(actor);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        // Skip invalid coordinates
+                        continue;
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -128,6 +307,7 @@ public class Earth extends World {
         this.addPlayer(player, gameMap.at(1, 1));
 
         populateWithAnimals(gameMap);
+        ensureRequiredSpawners(plainsGameMap);
         setupTeleportation(gameMap, plainsGameMap, player);
     }
 
@@ -239,31 +419,45 @@ public class Earth extends World {
 
     /**
      * Converts a suitable tile to the specified terrain type.
+     * Randomly selects a Snow tile to ensure spawners are distributed across the map.
      * 
      * @param gameMap the map to modify
      * @param terrainClass the terrain class to convert to
      */
     private void convertTileToTerrain(GameMap gameMap, Class<?> terrainClass) {
-        // Find a suitable snow tile to convert to the required terrain type
+        // Collect all available Snow tiles
+        java.util.List<edu.monash.fit2099.engine.positions.Location> snowTiles = new java.util.ArrayList<>();
+        
         for (int x = 0; x < gameMap.getXRange().max(); x++) {
             for (int y = 0; y < gameMap.getYRange().max(); y++) {
                 try {
-                    if (gameMap.at(x, y).getGround() instanceof Snow) {
-                        // Convert this snow tile to the required terrain type
-                        if (terrainClass == Cave.class) {
-                            gameMap.at(x, y).setGround(new Cave());
-                        } else if (terrainClass == Meadow.class) {
-                            gameMap.at(x, y).setGround(new Meadow());
-                        } else if (terrainClass == Tundra.class) {
-                            gameMap.at(x, y).setGround(new Tundra());
-                        }
-                        return; // Only convert one tile per terrain type
+                    // Check if ground is Snow by checking its display character
+                    if (gameMap.at(x, y).getGround().getDisplayChar() == '.') {
+                        snowTiles.add(gameMap.at(x, y));
                     }
                 } catch (Exception e) {
                     // Skip invalid coordinates
                     continue;
                 }
             }
+        }
+        
+        // If no snow tiles available, return
+        if (snowTiles.isEmpty()) {
+            return;
+        }
+        
+        // Randomly select a snow tile to convert
+        java.util.Random random = new java.util.Random();
+        edu.monash.fit2099.engine.positions.Location selectedTile = snowTiles.get(random.nextInt(snowTiles.size()));
+        
+        // Convert the selected snow tile to the required terrain type
+        if (terrainClass == Cave.class) {
+            selectedTile.setGround(new Cave());
+        } else if (terrainClass == Meadow.class) {
+            selectedTile.setGround(new Meadow());
+        } else if (terrainClass == Tundra.class) {
+            selectedTile.setGround(new Tundra());
         }
     }
 
