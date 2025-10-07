@@ -14,7 +14,7 @@ import java.util.Random;
 
 /**
  * A class representing tundra terrain that can spawn cold-resistant animals.
- * @author REQ2 Implementation
+ * @author Reynard Andyti Putra Kaban
  */
 public class Tundra extends Ground {
     private static final double SPAWN_CHANCE = 0.05; // 5% chance
@@ -45,8 +45,18 @@ public class Tundra extends Ground {
 
         @Override
         public void applySpawnEffects(Actor spawned, GameMap map) {
-            // Apply +10 HP boost
+            // Apply +10 max HP boost
             if (spawned.hasStatistic(edu.monash.fit2099.engine.actors.attributes.BaseAttributes.HEALTH)) {
+                int beforeMaxHP = spawned.getMaximumAttribute(edu.monash.fit2099.engine.actors.attributes.BaseAttributes.HEALTH);
+                
+                // Increase maximum health
+                spawned.modifyStatsMaximum(
+                    edu.monash.fit2099.engine.actors.attributes.BaseAttributes.HEALTH,
+                    edu.monash.fit2099.engine.actors.attributes.ActorAttributeOperation.INCREASE,
+                    HEALTH_BOOST
+                );
+                
+                // Also heal the animal to full HP with the new maximum
                 spawned.modifyAttribute(
                     edu.monash.fit2099.engine.actors.attributes.BaseAttributes.HEALTH,
                     edu.monash.fit2099.engine.actors.attributes.ActorAttributeOperation.INCREASE,
@@ -54,13 +64,9 @@ public class Tundra extends Ground {
                 );
             }
             
-            // Apply cold resistance capability
-            if (spawned instanceof game.taming.TameableAnimal) {
-                game.taming.TameableAnimal animal = (game.taming.TameableAnimal) spawned;
-                
-                // Enable cold resistance ability
-                animal.enableAbility(game.abilities.Abilities.COLD_RESISTANCE);
-            }
+            // Apply cold resistance capability to all spawned actors
+            // All actors spawned from Tundra get this ability
+            spawned.enableAbility(game.abilities.Abilities.COLD_RESISTANCE);
         }
     }
 

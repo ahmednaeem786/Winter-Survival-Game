@@ -14,7 +14,7 @@ import java.util.Random;
 
 /**
  * A class representing meadow terrain that can spawn animals with foraging abilities.
- * @author REQ2 Implementation
+ * @author Reynard Andyti Putra Kaban
  */
 public class Meadow extends Ground {
     private static final int SPAWN_CADENCE = 7; // Every 7 turns
@@ -53,12 +53,8 @@ public class Meadow extends Ground {
         public void applySpawnEffects(Actor spawned, GameMap map) {
             // Apply ground consumption capability to Meadow-spawned animals
             // This allows them to consume items on the ground like the Explorer
-            if (spawned instanceof game.taming.TameableAnimal) {
-                game.taming.TameableAnimal animal = (game.taming.TameableAnimal) spawned;
-                
-                // Enable ground consumption ability
-                animal.enableAbility(game.abilities.Abilities.GROUND_CONSUMPTION);
-            }
+            // All actors spawned from Meadow get this ability
+            spawned.enableAbility(game.abilities.Abilities.GROUND_CONSUMPTION);
         }
     }
 

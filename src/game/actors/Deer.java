@@ -52,7 +52,7 @@ public class Deer extends TameableAnimal implements ItemCollector, Follower {
      */
     public Deer() {
         super("Deer", 'd', 50, Set.of(Apple.class, YewBerry.class));
-        // Initialize warmth attribute for animal spawning system
+        // Initialize warmth attribute for animal spawning system (reduced for testing)
         this.addNewStatistic(BaseAttributes.WARMTH, new BaseActorAttribute(10));
     }
 

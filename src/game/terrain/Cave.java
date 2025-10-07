@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * A class representing cave terrain that can spawn animals every 5 turns.
- * @author REQ2 Implementation
+ * @author Reynard Andyti Putra Kaban
  */
 public class Cave extends Ground {
     private static final int SPAWN_INTERVAL = 5; // Every 5 turns
