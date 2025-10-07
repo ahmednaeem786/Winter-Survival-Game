@@ -38,8 +38,8 @@ public class Player extends GameActor implements HydrationCapability {
         this.setIntrinsicWeapon(new BareFist());
 
         // Initialize survival attributes
-        this.hydration = new BaseActorAttribute(20000000);
-        this.warmth = new BaseActorAttribute(30000000);
+        this.hydration = new BaseActorAttribute(20);
+        this.warmth = new BaseActorAttribute(30);
 
         this.enableAbility(Abilities.HYDRATION);
 

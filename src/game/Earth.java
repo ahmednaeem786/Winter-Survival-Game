@@ -303,7 +303,7 @@ public class Earth extends World {
         GameMap plainsGameMap = new GameMap("Plains", plainsGroundCreator, plainsMap);
         this.addGameMap(plainsGameMap);
 
-        Player player = new Player("Explorer", 'ඞ', 10000000);
+        Player player = new Player("Explorer", 'ඞ', 100);
         this.addPlayer(player, gameMap.at(1, 1));
 
         populateWithAnimals(gameMap);

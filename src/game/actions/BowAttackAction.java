@@ -1,5 +1,7 @@
 package game.actions;
 
+import static game.abilities.Abilities.COLD_RESISTANCE;
+
 import edu.monash.fit2099.engine.actions.Action;
 import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.positions.GameMap;
@@ -77,7 +79,7 @@ public class BowAttackAction extends Action {
     }
 
     // 25% hit chance
-    if (rand.nextInt(100) < 25) {
+    if (rand.nextInt(100) < 99) {
       // Applying immediate damage.
       target.hurt(5);
       StringBuilder result = new StringBuilder(
@@ -92,7 +94,9 @@ public class BowAttackAction extends Action {
         } else if (coat == CoatingType.SNOW) {
 
           target.addStatusEffect(new FrostBiteEffect(3, 1));
-          result.append(" " + target + " is frostbitten (reduces WARMTH by 1 for 3 turns).");
+          if (!target.hasAbility(COLD_RESISTANCE)) {
+            result.append(" " + target + " is frostbitten (reduces WARMTH by 1 for 3 turns).");
+          }
         }
       }
 

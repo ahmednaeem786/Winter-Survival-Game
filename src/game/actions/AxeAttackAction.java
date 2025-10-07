@@ -1,5 +1,7 @@
 package game.actions;
 
+import static game.abilities.Abilities.COLD_RESISTANCE;
+
 import edu.monash.fit2099.engine.actions.Action;
 import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.positions.GameMap;
@@ -100,7 +102,9 @@ public class AxeAttackAction extends Action {
           // Frostbite application: the FrostBiteEffect itself should respect tundra immunity
           // (e.g., skip actors spawned from tundra). We only attach the effect here.
           target.addStatusEffect(new FrostBiteEffect(3, 1));
-          result.append(" " + target + " is frostbitten (reduces WARMTH by 1 for 3 turns).");
+          if (!target.hasAbility(COLD_RESISTANCE)) {
+            result.append(" " + target + " is frostbitten (reduces WARMTH by 1 for 3 turns).");
+          }
         }
       }
 
