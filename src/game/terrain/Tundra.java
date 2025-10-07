@@ -54,9 +54,13 @@ public class Tundra extends Ground {
                 );
             }
             
-            // Apply cold resistance (this would be a capability/status in a real implementation)
-            // For now, we'll just add a comment indicating cold resistance would be applied
-            // TODO: Add cold resistance capability when status system is available
+            // Apply cold resistance capability
+            if (spawned instanceof game.taming.TameableAnimal) {
+                game.taming.TameableAnimal animal = (game.taming.TameableAnimal) spawned;
+                
+                // Enable cold resistance ability
+                animal.enableAbility(game.abilities.Abilities.COLD_RESISTANCE);
+            }
         }
     }
 

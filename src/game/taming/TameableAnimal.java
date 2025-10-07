@@ -148,10 +148,43 @@ public abstract class TameableAnimal extends GameActor implements Tameable {
     @Override
     public Action playTurn(ActionList actions, Action lastAction, GameMap map, Display display) {
         tickStatusEffects(map);
+        
+        // Handle animal warmth decrease and unconsciousness
+        handleWarmthDecrease(map);
+        
         if (tamed) {
             return tamedBehavior(actions, lastAction, map, display);
         } else {
             return wildBehavior(actions, lastAction, map, display);
+        }
+    }
+    
+    /**
+     * Handles warmth decrease for animals and unconsciousness when warmth reaches 0.
+     * Animals lose 1 warmth each turn, and become unconscious when warmth reaches 0.
+     * Animals with cold resistance don't lose warmth.
+     * 
+     * @param map the current game map
+     */
+    private void handleWarmthDecrease(GameMap map) {
+        // Check if animal has warmth attribute
+        if (this.hasStatistic(edu.monash.fit2099.engine.actors.attributes.BaseAttributes.WARMTH)) {
+            // Only decrease warmth if animal doesn't have cold resistance
+            if (!this.hasAbility(game.abilities.Abilities.COLD_RESISTANCE)) {
+                // Decrease warmth by 1 each turn
+                this.modifyAttribute(
+                    edu.monash.fit2099.engine.actors.attributes.BaseAttributes.WARMTH,
+                    edu.monash.fit2099.engine.actors.attributes.ActorAttributeOperation.DECREASE,
+                    1
+                );
+                
+                // Check if warmth has reached 0
+                int currentWarmth = this.getAttribute(edu.monash.fit2099.engine.actors.attributes.BaseAttributes.WARMTH);
+                if (currentWarmth <= 0) {
+                    // Animal becomes unconscious due to cold
+                    map.removeActor(this);
+                }
+            }
         }
     }
 

@@ -10,6 +10,10 @@ import game.actors.*;
 import game.items.TeleportCube;
 import game.teleportation.TeleportDestination;
 import game.terrain.*;
+import game.terrain.Cave;
+import game.terrain.Meadow;
+import game.terrain.Tundra;
+import game.terrain.Snow;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -61,6 +65,18 @@ public class Earth extends World {
     }
 
     /**
+     * Override the game loop to increment the global turn counter for spawning.
+     */
+    @Override
+    protected void gameLoop() throws GameEngineException {
+        // Increment the global turn counter for spawning
+        game.terrain.Snow.SpawnHelper.incrementTurn();
+        
+        // Call the parent game loop
+        super.gameLoop();
+    }
+
+    /**
      * Constructs the complete game world including terrain, player, and wildlife.
      *
      * This method builds the entire winter survival environment:
@@ -108,7 +124,7 @@ public class Earth extends World {
         GameMap plainsGameMap = new GameMap("Plains", plainsGroundCreator, plainsMap);
         this.addGameMap(plainsGameMap);
 
-        Player player = new Player("Explorer", 'ඞ', 100);
+        Player player = new Player("Explorer", 'ඞ', 10000000);
         this.addPlayer(player, gameMap.at(1, 1));
 
         populateWithAnimals(gameMap);
@@ -205,10 +221,20 @@ public class Earth extends World {
      * @return true if the terrain type exists on the map
      */
     private boolean hasTerrainType(GameMap gameMap, Class<?> terrainClass) {
-        // This is a simplified check - in a real implementation,
-        // this would iterate through all tiles on the map
-        // For now, we'll assume the required terrain types are manually placed
-        return true; // Placeholder implementation
+        // Iterate through all tiles on the map to check for the terrain type
+        for (int x = 0; x < gameMap.getXRange().max(); x++) {
+            for (int y = 0; y < gameMap.getYRange().max(); y++) {
+                try {
+                    if (gameMap.at(x, y).getGround().getClass() == terrainClass) {
+                        return true;
+                    }
+                } catch (Exception e) {
+                    // Skip invalid coordinates
+                    continue;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -218,14 +244,27 @@ public class Earth extends World {
      * @param terrainClass the terrain class to convert to
      */
     private void convertTileToTerrain(GameMap gameMap, Class<?> terrainClass) {
-        // This is a placeholder implementation
-        // In a real implementation, this would:
-        // 1. Find a suitable tile (e.g., snow) to convert
-        // 2. Replace it with the required terrain type
-        // 3. Ensure the conversion doesn't break the map layout
-        
-        // For now, we'll just add a comment indicating where this would happen
-        // TODO: Implement actual terrain conversion logic
+        // Find a suitable snow tile to convert to the required terrain type
+        for (int x = 0; x < gameMap.getXRange().max(); x++) {
+            for (int y = 0; y < gameMap.getYRange().max(); y++) {
+                try {
+                    if (gameMap.at(x, y).getGround() instanceof Snow) {
+                        // Convert this snow tile to the required terrain type
+                        if (terrainClass == Cave.class) {
+                            gameMap.at(x, y).setGround(new Cave());
+                        } else if (terrainClass == Meadow.class) {
+                            gameMap.at(x, y).setGround(new Meadow());
+                        } else if (terrainClass == Tundra.class) {
+                            gameMap.at(x, y).setGround(new Tundra());
+                        }
+                        return; // Only convert one tile per terrain type
+                    }
+                } catch (Exception e) {
+                    // Skip invalid coordinates
+                    continue;
+                }
+            }
+        }
     }
 
     /**

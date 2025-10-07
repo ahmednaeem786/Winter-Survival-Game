@@ -51,14 +51,14 @@ public class Meadow extends Ground {
 
         @Override
         public void applySpawnEffects(Actor spawned, GameMap map) {
-            // Apply ground consumption capability
-            // This would allow the animal to consume items on the ground
-            // For now, we'll add a comment indicating this capability would be applied
-            // TODO: Add ground consumption capability when capability system is available
-            
-            // The ground consumption effect should work exactly like the Explorer's
-            // consumption of apples, yew berries, and hazelnuts
-            // Eating a Yew berry will make them unconscious and remove them from the map
+            // Apply ground consumption capability to Meadow-spawned animals
+            // This allows them to consume items on the ground like the Explorer
+            if (spawned instanceof game.taming.TameableAnimal) {
+                game.taming.TameableAnimal animal = (game.taming.TameableAnimal) spawned;
+                
+                // Enable ground consumption ability
+                animal.enableAbility(game.abilities.Abilities.GROUND_CONSUMPTION);
+            }
         }
     }
 

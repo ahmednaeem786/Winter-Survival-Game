@@ -14,5 +14,7 @@ public enum Abilities {
     TAMED,
     BURNING,
     CAN_BE_BURNED,
-    NEWLY_BURNED
+    NEWLY_BURNED,
+    GROUND_CONSUMPTION,
+    COLD_RESISTANCE
 }
