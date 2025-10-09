@@ -85,7 +85,7 @@ public class AxeAttackAction extends Action {
       // 50% chance to apply bleed on successful hit.
       if (rand.nextInt(100) < 50) {
         target.addStatusEffect(new BleedEffect(2, 10));
-        result.append(" " + target + " starts bleeding (10 damage per turn for 2 turns).");
+        result.append("\n" + target + " starts bleeding (10 damage per turn for 2 turns).");
       }
 
       /*
