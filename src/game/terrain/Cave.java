@@ -4,12 +4,12 @@ import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.positions.GameMap;
 import edu.monash.fit2099.engine.positions.Ground;
 import edu.monash.fit2099.engine.positions.Location;
-import game.actors.Bear;
-import game.actors.Wolf;
-import game.actors.Deer;
+import game.terrain.Snow.SpawnHelper;
+import game.terrain.Snow.SpawnRule;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import static game.Earth.getAllowedSpecies;
 
 /**
  * A class representing cave terrain that can spawn animals every 5 turns.
@@ -28,7 +28,7 @@ public class Cave extends Ground {
      * Cave spawn rule implementation.
      * Spawns animals every 5 turns regardless of probability gates.
      */
-    private static class CaveRule implements game.terrain.Snow.SpawnRule {
+    private static class CaveRule implements SpawnRule {
         @Override
         public boolean shouldAttemptSpawn(int globalTurn) {
             return globalTurn % SPAWN_INTERVAL == 0;
@@ -37,7 +37,7 @@ public class Cave extends Ground {
         @Override
         public List<Class<? extends Actor>> allowedSpecies(GameMap map) {
             // Use the map-specific spawn profile from Earth class
-            return game.Earth.getAllowedSpecies(map.toString(), Cave.class);
+            return getAllowedSpecies(map.toString(), Cave.class);
         }
 
         @Override
@@ -56,9 +56,9 @@ public class Cave extends Ground {
         super.tick(location);
         
         // Get current turn from the global turn counter
-        int currentTurn = game.terrain.Snow.SpawnHelper.getGlobalTurn();
+        int currentTurn = SpawnHelper.getGlobalTurn();
         
         // Attempt to spawn using the spawn helper
-        game.terrain.Snow.SpawnHelper.attemptSpawn(location, spawnRule, currentTurn);
+        SpawnHelper.attemptSpawn(location, spawnRule, currentTurn);
     }
 }

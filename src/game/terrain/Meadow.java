@@ -4,13 +4,15 @@ import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.positions.GameMap;
 import edu.monash.fit2099.engine.positions.Ground;
 import edu.monash.fit2099.engine.positions.Location;
-import game.actors.Bear;
-import game.actors.Wolf;
-import game.actors.Deer;
+import game.Earth;
+import game.abilities.Abilities;
+import game.terrain.Snow.SpawnHelper;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import static game.Earth.getAllowedSpecies;
+import static game.terrain.Snow.SpawnHelper.attemptSpawn;
 
 /**
  * A class representing meadow terrain that can spawn animals with foraging abilities.
@@ -46,7 +48,8 @@ public class Meadow extends Ground {
         @Override
         public List<Class<? extends Actor>> allowedSpecies(GameMap map) {
             // Use the map-specific spawn profile from Earth class
-            return game.Earth.getAllowedSpecies(map.toString(), Meadow.class);
+            List<Class<? extends Actor>> allowedSpecies = getAllowedSpecies(map.toString(), Meadow.class);
+            return allowedSpecies;
         }
 
         @Override
@@ -54,7 +57,7 @@ public class Meadow extends Ground {
             // Apply ground consumption capability to Meadow-spawned animals
             // This allows them to consume items on the ground like the Explorer
             // All actors spawned from Meadow get this ability
-            spawned.enableAbility(game.abilities.Abilities.GROUND_CONSUMPTION);
+            spawned.enableAbility(Abilities.GROUND_CONSUMPTION);
         }
     }
 
@@ -67,10 +70,10 @@ public class Meadow extends Ground {
         super.tick(location);
         
         // Get current turn from the global turn counter
-        int currentTurn = game.terrain.Snow.SpawnHelper.getGlobalTurn();
+        int currentTurn = SpawnHelper.getGlobalTurn();
         
         // Attempt to spawn using the spawn helper
-        game.terrain.Snow.SpawnHelper.attemptSpawn(location, spawnRule, currentTurn);
+        attemptSpawn(location, spawnRule, currentTurn);
     }
 
     /**
