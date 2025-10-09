@@ -144,7 +144,7 @@ public class PoisonState implements ChimeraState {
 
         if (turnsInState >= 4) {
             // Poison -> Fire after 3 turns: 50% chance, 50% stay Poison
-            if (chance < 1) { //change to 50
+            if (chance < 50) {
                 display.println("The poison boils away as the chimera erupts in flames!");
                 return new FireState();
             }
