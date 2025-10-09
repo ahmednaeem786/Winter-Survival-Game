@@ -90,12 +90,12 @@ public class BowAttackAction extends Action {
         CoatingType coat = bow.getCoating();
         if (coat == CoatingType.YEWBERRY) {
           target.addStatusEffect(new PoisonEffect(5, 4));
-          result.append(" " + target + " is poisoned (4 dmg/turn for 5 turns).");
+          result.append("\n" + target + " is poisoned (4 dmg/turn for 5 turns).\n");
         } else if (coat == CoatingType.SNOW) {
 
           target.addStatusEffect(new FrostBiteEffect(3, 1));
           if (!target.hasAbility(COLD_RESISTANCE)) {
-            result.append(" " + target + " is frostbitten (reduces WARMTH by 1 for 3 turns).");
+            result.append("\n" + target + " is frostbitten (reduces WARMTH by 1 for 3 turns).");
           }
         }
       }

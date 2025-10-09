@@ -77,7 +77,7 @@ public class TorchAttackAction extends Action {
 
       //Applying long burn effect i.e. 7 turns and 3 damage per turn
       target.addStatusEffect(new BurnEffect(7, 3));
-      sb.append(" " + target + " is burning at 3 damage per turn for 7 turns.");
+      sb.append("\n" + target + " is burning at 3 damage per turn for 7 turns.");
 
       // spawning temporary fire on adjacent tiles and not on the attacker's own tile
       spawnFireAround(actor, map, 5);

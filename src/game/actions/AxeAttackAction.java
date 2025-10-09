@@ -97,13 +97,13 @@ public class AxeAttackAction extends Action {
         CoatingType coat = axe.getCoating();
         if (coat == CoatingType.YEWBERRY) {
           target.addStatusEffect(new PoisonEffect(5, 4));
-          result.append(" " + target + " is poisoned (4 damage per turn for 5 turns).");
+          result.append("\n" + target + " is poisoned (4 damage per turn for 5 turns).");
         } else if (coat == CoatingType.SNOW) {
           // Frostbite application: the FrostBiteEffect itself should respect tundra immunity
           // (e.g., skip actors spawned from tundra). We only attach the effect here.
           target.addStatusEffect(new FrostBiteEffect(3, 1));
           if (!target.hasAbility(COLD_RESISTANCE)) {
-            result.append(" " + target + " is frostbitten (reduces WARMTH by 1 for 3 turns).");
+            result.append("\n" + target + " is frostbitten (reduces WARMTH by 1 for 3 turns).");
           }
         }
       }
