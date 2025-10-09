@@ -1,17 +1,27 @@
 package game;
 
 import edu.monash.fit2099.engine.GameEngineException;
+import edu.monash.fit2099.engine.actions.Action;
+import edu.monash.fit2099.engine.actions.ActionList;
+import edu.monash.fit2099.engine.actions.DoNothingAction;
 import edu.monash.fit2099.engine.actors.Actor;
+import edu.monash.fit2099.engine.actors.attributes.ActorAttributeOperation;
+import edu.monash.fit2099.engine.actors.attributes.BaseAttributes;
 import edu.monash.fit2099.engine.displays.Display;
+import edu.monash.fit2099.engine.items.Item;
 import edu.monash.fit2099.engine.positions.DefaultGroundCreator;
+import edu.monash.fit2099.engine.positions.Exit;
 import edu.monash.fit2099.engine.positions.GameMap;
+import edu.monash.fit2099.engine.positions.Location;
 import edu.monash.fit2099.engine.positions.World;
+import game.abilities.Abilities;
 import game.actors.*;
 import game.items.TeleportCube;
 import game.teleportation.TeleportDestination;
 import game.terrain.*;
 import game.terrain.Cave;
 import game.terrain.Meadow;
+import game.terrain.Snow.SpawnHelper;
 import game.terrain.Tundra;
 import game.terrain.Snow;
 
@@ -27,7 +37,7 @@ import java.util.stream.Collectors;
  * creates the survival scenario.
  *
  * @author Muhamad Shafy Dimas Rafarrel
- * @version 3.4
+ * @version 3.6
  */
 public class Earth extends World {
 
@@ -72,7 +82,7 @@ public class Earth extends World {
     @Override
     protected void gameLoop() throws GameEngineException {
         // Increment the global turn counter for spawning
-        game.terrain.Snow.SpawnHelper.incrementTurn();
+        SpawnHelper.incrementTurn();
         
         // Handle animal warmth decrease every turn
         handleAnimalWarmthDecrease();
@@ -89,7 +99,7 @@ public class Earth extends World {
         playersMap.draw(display);
         
         // Process all the actors, but only display actions for actors on the player's map
-        for (edu.monash.fit2099.engine.actors.Actor actor : actorLocations) {
+        for (Actor actor : actorLocations) {
             if (stillRunning()) {
                 processActorTurnWithMapFilter(actor, playersMap);
             }
@@ -103,19 +113,20 @@ public class Earth extends World {
      * @param actor the actor whose turn is being processed
      * @param playersMap the map the player is currently on (used to filter display output)
      */
-    private void processActorTurnWithMapFilter(edu.monash.fit2099.engine.actors.Actor actor, GameMap playersMap) {
+    private void processActorTurnWithMapFilter(Actor actor, GameMap playersMap) {
         // Get actor's location and map
-        edu.monash.fit2099.engine.positions.Location here = actorLocations.locationOf(actor);
+        Location here;
+        here = actorLocations.locationOf(actor);
         GameMap map = here.map();
         
         // Prepare all allowable actions for this actor
-        edu.monash.fit2099.engine.actions.ActionList actions = prepareActorActions(actor, here);
+        ActionList actions = prepareActorActions(actor, here);
         
         // Use a dummy display for actors not on the player's map to suppress their messages
-        edu.monash.fit2099.engine.displays.Display actorDisplay = (map == playersMap) ? display : new edu.monash.fit2099.engine.displays.Display();
+        Display actorDisplay = (map == playersMap) ? display : new Display();
         
         // Get the action from the actor
-        edu.monash.fit2099.engine.actions.Action action = actor.playTurn(actions, lastActionMap.get(actor), map, actorDisplay);
+        Action action = actor.playTurn(actions, lastActionMap.get(actor), map, actorDisplay);
         
         // Record the action
         lastActionMap.put(actor, action);
@@ -137,14 +148,14 @@ public class Earth extends World {
      * @param here the actor's current location
      * @return list of all allowable actions
      */
-    private edu.monash.fit2099.engine.actions.ActionList prepareActorActions(
-            edu.monash.fit2099.engine.actors.Actor actor, 
-            edu.monash.fit2099.engine.positions.Location here) {
+    private ActionList prepareActorActions(
+            Actor actor,
+            Location here) {
         
-        edu.monash.fit2099.engine.actions.ActionList actions = new edu.monash.fit2099.engine.actions.ActionList();
+        ActionList actions = new ActionList();
         
         // Actions from items in inventory
-        for (edu.monash.fit2099.engine.items.Item item : actor.getItemInventory()) {
+        for (Item item : actor.getItemInventory()) {
             actions.add(item.allowableActions(actor, here.map()));
             actions.add(item.getDropAction(actor));
         }
@@ -153,13 +164,13 @@ public class Earth extends World {
         actions.add(here.getGround().allowableActions(actor, here, ""));
         
         // Actions from surrounding locations
-        for (edu.monash.fit2099.engine.positions.Exit exit : here.getExits()) {
-            edu.monash.fit2099.engine.positions.Location destination = exit.getDestination();
+        for (Exit exit : here.getExits()) {
+            Location destination = exit.getDestination();
             
             if (actorLocations.isAnActorAt(destination)) {
-                edu.monash.fit2099.engine.actors.Actor otherActor = actorLocations.getActorAt(destination);
+                Actor otherActor = actorLocations.getActorAt(destination);
                 actions.add(otherActor.allowableActions(actor, exit.getName(), here.map()));
-                for (edu.monash.fit2099.engine.items.Item item : actor.getItemInventory()) {
+                for (Item item : actor.getItemInventory()) {
                     actions.add(item.allowableActions(otherActor, destination));
                 }
             } else {
@@ -169,13 +180,13 @@ public class Earth extends World {
         }
         
         // Actions from items on the ground
-        for (edu.monash.fit2099.engine.items.Item item : here.getItems()) {
+        for (Item item : here.getItems()) {
             actions.add(item.allowableActions(here));
             actions.add(item.getPickUpAction(actor));
         }
         
         // Add do-nothing option
-        actions.add(new edu.monash.fit2099.engine.actions.DoNothingAction());
+        actions.add(new DoNothingAction());
         
         return actions;
     }
@@ -203,9 +214,9 @@ public class Earth extends World {
                             Actor actor = gameMap.at(x, y).getActor();
                             
                             // Check if actor has warmth attribute (only animals with warmth need processing)
-                            if (actor.hasStatistic(edu.monash.fit2099.engine.actors.attributes.BaseAttributes.WARMTH)) {
+                            if (actor.hasStatistic(BaseAttributes.WARMTH)) {
                                 // Check if actor has cold resistance
-                                if (actor.hasAbility(game.abilities.Abilities.COLD_RESISTANCE)) {
+                                if (actor.hasAbility(Abilities.COLD_RESISTANCE)) {
                                     // Animal is immune to cold - display status message
                                     if (isPlayersMap) {
                                         System.out.println(actor + " is immune to cold and feels comfortable in the frozen tundra.");
@@ -213,13 +224,13 @@ public class Earth extends World {
                                 } else {
                                     // Decrease warmth by 1 each turn for non-resistant animals
                                     actor.modifyAttribute(
-                                        edu.monash.fit2099.engine.actors.attributes.BaseAttributes.WARMTH,
-                                        edu.monash.fit2099.engine.actors.attributes.ActorAttributeOperation.DECREASE,
+                                        BaseAttributes.WARMTH,
+                                        ActorAttributeOperation.DECREASE,
                                         1
                                     );
                                     
                                     // Check current warmth level
-                                    int currentWarmth = actor.getAttribute(edu.monash.fit2099.engine.actors.attributes.BaseAttributes.WARMTH);
+                                    int currentWarmth = actor.getAttribute(BaseAttributes.WARMTH);
                                     
                                     // Only show status messages for animals on the player's map
                                     if (isPlayersMap) {
@@ -426,7 +437,7 @@ public class Earth extends World {
      */
     private void convertTileToTerrain(GameMap gameMap, Class<?> terrainClass) {
         // Collect all available Snow tiles
-        java.util.List<edu.monash.fit2099.engine.positions.Location> snowTiles = new java.util.ArrayList<>();
+        java.util.List<Location> snowTiles = new java.util.ArrayList<>();
         
         for (int x = 0; x < gameMap.getXRange().max(); x++) {
             for (int y = 0; y < gameMap.getYRange().max(); y++) {
@@ -449,7 +460,7 @@ public class Earth extends World {
         
         // Randomly select a snow tile to convert
         java.util.Random random = new java.util.Random();
-        edu.monash.fit2099.engine.positions.Location selectedTile = snowTiles.get(random.nextInt(snowTiles.size()));
+        Location selectedTile = snowTiles.get(random.nextInt(snowTiles.size()));
         
         // Convert the selected snow tile to the required terrain type
         if (terrainClass == Cave.class) {
