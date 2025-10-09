@@ -4,12 +4,10 @@ import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.positions.GameMap;
 import edu.monash.fit2099.engine.positions.Ground;
 import edu.monash.fit2099.engine.positions.Location;
+import game.Earth;
 import game.terrain.Snow.SpawnHelper;
-import game.terrain.Snow.SpawnRule;
 
 import java.util.List;
-
-import static game.Earth.getAllowedSpecies;
 
 /**
  * A class representing cave terrain that can spawn animals every 5 turns.
@@ -17,7 +15,7 @@ import static game.Earth.getAllowedSpecies;
  */
 public class Cave extends Ground {
     private static final int SPAWN_INTERVAL = 5; // Every 5 turns
-    private game.terrain.Snow.SpawnRule spawnRule;
+    private Snow.SpawnRule spawnRule;
 
     public Cave() {
         super('C', "Cave");
@@ -28,7 +26,7 @@ public class Cave extends Ground {
      * Cave spawn rule implementation.
      * Spawns animals every 5 turns regardless of probability gates.
      */
-    private static class CaveRule implements SpawnRule {
+    private static class CaveRule implements Snow.SpawnRule {
         @Override
         public boolean shouldAttemptSpawn(int globalTurn) {
             return globalTurn % SPAWN_INTERVAL == 0;
@@ -37,13 +35,12 @@ public class Cave extends Ground {
         @Override
         public List<Class<? extends Actor>> allowedSpecies(GameMap map) {
             // Use the map-specific spawn profile from Earth class
-            return getAllowedSpecies(map.toString(), Cave.class);
+            return Earth.getAllowedSpecies(map.toString(), Cave.class);
         }
 
         @Override
         public void applySpawnEffects(Actor spawned, GameMap map) {
             // Cave-spawned animals don't get special effects
-            // They spawn with normal characteristics
         }
     }
 

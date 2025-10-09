@@ -11,9 +11,6 @@ import game.terrain.Snow.SpawnHelper;
 import java.util.List;
 import java.util.Random;
 
-import static game.Earth.getAllowedSpecies;
-import static game.terrain.Snow.SpawnHelper.attemptSpawn;
-
 /**
  * A class representing meadow terrain that can spawn animals with foraging abilities.
  * @author Reynard Andyti Putra Kaban
@@ -21,7 +18,7 @@ import static game.terrain.Snow.SpawnHelper.attemptSpawn;
 public class Meadow extends Ground {
     private static final int SPAWN_CADENCE = 7; // Every 7 turns
     private static final double SPAWN_CHANCE = 0.5; // 50% chance
-    private game.terrain.Snow.SpawnRule spawnRule;
+    private Snow.SpawnRule spawnRule;
     private static Random random = new Random();
 
     public Meadow() {
@@ -33,7 +30,7 @@ public class Meadow extends Ground {
      * Meadow spawn rule implementation.
      * Spawns animals every 7 turns with 50% chance, gives them ground consumption ability.
      */
-    private static class MeadowRule implements game.terrain.Snow.SpawnRule {
+    private static class MeadowRule implements Snow.SpawnRule {
         @Override
         public boolean shouldAttemptSpawn(int globalTurn) {
             // Check if it's a spawn turn (every 7 turns)
@@ -48,8 +45,7 @@ public class Meadow extends Ground {
         @Override
         public List<Class<? extends Actor>> allowedSpecies(GameMap map) {
             // Use the map-specific spawn profile from Earth class
-            List<Class<? extends Actor>> allowedSpecies = getAllowedSpecies(map.toString(), Meadow.class);
-            return allowedSpecies;
+            return Earth.getAllowedSpecies(map.toString(), Meadow.class);
         }
 
         @Override
@@ -73,7 +69,7 @@ public class Meadow extends Ground {
         int currentTurn = SpawnHelper.getGlobalTurn();
         
         // Attempt to spawn using the spawn helper
-        attemptSpawn(location, spawnRule, currentTurn);
+        SpawnHelper.attemptSpawn(location, spawnRule, currentTurn);
     }
 
     /**

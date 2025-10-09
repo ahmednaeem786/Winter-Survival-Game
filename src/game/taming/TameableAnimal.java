@@ -6,10 +6,16 @@ import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.displays.Display;
 import edu.monash.fit2099.engine.items.Item;
 import edu.monash.fit2099.engine.positions.GameMap;
+import edu.monash.fit2099.engine.positions.Location;
+import game.abilities.Abilities;
 import game.actions.AttackAction;
 import game.actions.TameAction;
-
 import game.actors.GameActor;
+import game.items.ConsumableItem;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -150,7 +156,7 @@ public abstract class TameableAnimal extends GameActor implements Tameable {
         tickStatusEffects(map);
         
         // Check if animal has GROUND_CONSUMPTION ability and consume items on ground
-        if (this.hasAbility(game.abilities.Abilities.GROUND_CONSUMPTION)) {
+        if (this.hasAbility(Abilities.GROUND_CONSUMPTION)) {
             consumeGroundItems(map);
         }
         
@@ -168,19 +174,19 @@ public abstract class TameableAnimal extends GameActor implements Tameable {
      * @param map the current game map
      */
     private void consumeGroundItems(GameMap map) {
-        edu.monash.fit2099.engine.positions.Location currentLocation = map.locationOf(this);
+        Location currentLocation = map.locationOf(this);
         if (currentLocation == null) {
             return;
         }
         
         // Get all items at current location
-        java.util.List<edu.monash.fit2099.engine.items.Item> items = new java.util.ArrayList<>(currentLocation.getItems());
+        List<Item> items = new ArrayList<>(currentLocation.getItems());
         
-        for (edu.monash.fit2099.engine.items.Item item : items) {
+        for (Item item : items) {
             // Check if item is consumable using capability pattern (same pattern as player)
-            java.util.Optional<game.items.ConsumableItem> consumableOpt = item.asCapability(game.items.ConsumableItem.class);
+            Optional<ConsumableItem> consumableOpt = item.asCapability(ConsumableItem.class);
             if (consumableOpt.isPresent()) {
-                game.items.ConsumableItem consumable = consumableOpt.get();
+                ConsumableItem consumable = consumableOpt.get();
                 
                 // Remove item from ground and consume it
                 currentLocation.removeItem(item);
