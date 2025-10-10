@@ -5,6 +5,7 @@ import edu.monash.fit2099.engine.actions.ActionList;
 import edu.monash.fit2099.engine.actions.DoNothingAction;
 import edu.monash.fit2099.engine.actions.MoveActorAction;
 import edu.monash.fit2099.engine.actors.Actor;
+import edu.monash.fit2099.engine.actors.attributes.BaseAttributes;
 import edu.monash.fit2099.engine.displays.Display;
 import edu.monash.fit2099.engine.positions.Exit;
 import edu.monash.fit2099.engine.positions.GameMap;
@@ -214,17 +215,24 @@ public class FireState implements ChimeraState {
 
         @Override
         public String execute(Actor actor, GameMap map) {
+            // Check health before attack
+            int healthBefore = target.getAttribute(BaseAttributes.HEALTH);
+
+            // Execute attack
             String result = super.execute(actor, map);
 
-            // Apply burning status effect to the target
-            if (target != null && target.isConscious()) {
+            // Check health after attack
+            int healthAfter = target.getAttribute(BaseAttributes.HEALTH);
+
+            // Only apply burning and fire spread if attack actually hit
+            if (healthAfter < healthBefore && target.isConscious()) {
                 applyBurningEffect(target);
+                burnSurroundings(targetLocation);
+                result += "\n" + target + " is set ablaze! (5 damage per turn for 5 turns)";
+                result += "\n(Fire spreads around the target!)";
             }
 
-            // Burn two random surrounding locations of the target
-            burnSurroundings(targetLocation);
-
-            return result + " (Fire spreads around the target!)";
+            return result;
         }
 
         /**
@@ -236,7 +244,6 @@ public class FireState implements ChimeraState {
             StatusRecipient recipient = StatusRecipientRegistry.getRecipient(target);
             if (recipient != null) {
                 recipient.addStatusEffect(new BurnEffect(BURN_DURATION, BURN_DAMAGE_PER_TURN));
-                display.println(target + " is set ablaze! (5 damage per turn for 5 turns)");
             }
         }
 
@@ -265,12 +272,6 @@ public class FireState implements ChimeraState {
                 Ground originalGround = loc.getGround();
                 loc.setGround(new FireGround(3, originalGround));
                 burned++;
-            }
-
-            if (burned > 0) {
-                display.println("The fire spreads to "
-                        + burned
-                        + " surrounding location(s)!");
             }
         }
     }

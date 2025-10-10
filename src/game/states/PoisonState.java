@@ -5,6 +5,7 @@ import edu.monash.fit2099.engine.actions.ActionList;
 import edu.monash.fit2099.engine.actions.DoNothingAction;
 import edu.monash.fit2099.engine.actions.MoveActorAction;
 import edu.monash.fit2099.engine.actors.Actor;
+import edu.monash.fit2099.engine.actors.attributes.BaseAttributes;
 import edu.monash.fit2099.engine.displays.Display;
 import edu.monash.fit2099.engine.positions.Exit;
 import edu.monash.fit2099.engine.positions.GameMap;
@@ -12,6 +13,7 @@ import edu.monash.fit2099.engine.positions.Location;
 import edu.monash.fit2099.engine.weapons.IntrinsicWeapon;
 import game.abilities.Abilities;
 import game.actions.AttackAction;
+import game.actors.Chimera;
 import game.status.PoisonEffect;
 import game.status.StatusRecipient;
 import game.status.StatusRecipientRegistry;
@@ -88,7 +90,7 @@ public class PoisonState implements ChimeraState {
 
         Location currentLocation = map.locationOf(chimera);
 
-        game.actors.Chimera chimeraActor = (game.actors.Chimera) chimera;
+        Chimera chimeraActor = (Chimera) chimera;
 
         // Look for adjacent enemies to poison
         for (Exit exit : currentLocation.getExits()) {
@@ -296,11 +298,19 @@ public class PoisonState implements ChimeraState {
 
         @Override
         public String execute(Actor actor, GameMap map) {
+            // Check health before attack
+            int healthBefore = target.getAttribute(BaseAttributes.HEALTH);
+
+            // Execute attack
             String result = super.execute(actor, map);
 
-            // Apply poison status effect to the target
-            if (target != null && target.isConscious()) {
+            // Check health after attack
+            int healthAfter = target.getAttribute(BaseAttributes.HEALTH);
+
+            // Only poison if attack actually hit
+            if (healthAfter < healthBefore && target.isConscious()) {
                 applyPoisonEffect(target);
+                result += "\n" + target + " has been poisoned! (-2 HP per turn for 3 turns)";
             }
 
             return result;
@@ -316,7 +326,6 @@ public class PoisonState implements ChimeraState {
             if (recipient != null) {
                 recipient.addStatusEffect(new PoisonEffect(POISON_DURATION, POISON_DAMAGE_PER_TURN));
                 poisonedActors.put(target, new PoisonTracker(POISON_DURATION));
-                display.println(target + " has been poisoned! (-2 HP per turn for 3 turns)");
             }
         }
     }

@@ -268,13 +268,22 @@ public class IceState implements ChimeraState {
             this.display = disp;
         }
 
+
         @Override
         public String execute(Actor actor, GameMap map) {
+            // Check health before attack
+            int healthBefore = target.getAttribute(BaseAttributes.HEALTH);
+
+            // Execute attack
             String result = super.execute(actor, map);
 
-            // Apply frostbite status effect to the target
-            if (target != null && target.isConscious()) {
+            // Check health after attack
+            int healthAfter = target.getAttribute(BaseAttributes.HEALTH);
+
+            // Only apply frostbite if attack actually hit
+            if (healthAfter < healthBefore && target.isConscious()) {
                 applyFrostbiteEffect(target);
+                result += "\n" + target + " is afflicted with frostbite! (WARMTH -2 per turn for 4 turns)";
             }
 
             return result;
@@ -289,7 +298,6 @@ public class IceState implements ChimeraState {
             StatusRecipient recipient = StatusRecipientRegistry.getRecipient(target);
             if (recipient != null) {
                 recipient.addStatusEffect(new FrostBiteEffect(FROSTBITE_DURATION, FROSTBITE_WARMTH_REDUCTION));
-                display.println(target + " is afflicted with frostbite! (WARMTH -2 per turn for 4 turns)");
             }
         }
     }
