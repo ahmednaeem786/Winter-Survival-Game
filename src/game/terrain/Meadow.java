@@ -7,6 +7,7 @@ import edu.monash.fit2099.engine.positions.Location;
 import game.Earth;
 import game.abilities.Abilities;
 import game.terrain.Snow.SpawnHelper;
+import game.terrain.Snow.SpawnRule;
 
 import java.util.List;
 import java.util.Random;

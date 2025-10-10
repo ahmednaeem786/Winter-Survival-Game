@@ -9,6 +9,7 @@ import edu.monash.fit2099.engine.positions.Location;
 import game.Earth;
 import game.abilities.Abilities;
 import game.terrain.Snow.SpawnHelper;
+import game.terrain.Snow.SpawnRule;
 
 import java.util.List;
 import java.util.Random;
@@ -48,6 +49,8 @@ public class Tundra extends Ground {
         public void applySpawnEffects(Actor spawned, GameMap map) {
             // Apply +10 max HP boost
             if (spawned.hasStatistic(BaseAttributes.HEALTH)) {
+                int beforeMaxHP = spawned.getMaximumAttribute(BaseAttributes.HEALTH);
+                
                 // Increase maximum health
                 spawned.modifyStatsMaximum(
                     BaseAttributes.HEALTH,
