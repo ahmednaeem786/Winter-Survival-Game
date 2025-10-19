@@ -314,8 +314,16 @@ public class Earth extends World {
         GameMap plainsGameMap = new GameMap("Plains", plainsGroundCreator, plainsMap);
         this.addGameMap(plainsGameMap);
 
+        gameMap.at(16,8).setGround(PlantFactory.createAppleSproutForMap(false));
+        gameMap.at(6,3).setGround(PlantFactory.createAppleSaplingForMap(false));
+        gameMap.at(3,6).setGround(PlantFactory.createYewSaplingForMap(false));
+
+        plainsGameMap.at(2,1).setGround(PlantFactory.createAppleSproutForMap(true));
+        plainsGameMap.at(4,2).setGround(PlantFactory.createAppleSproutForMap(true));
+        plainsGameMap.at(6,2).setGround(PlantFactory.createYewSaplingForMap(true));
+
         Player player = new Player("Explorer", 'ඞ', 100);
-        this.addPlayer(player, gameMap.at(1, 1));
+        this.addPlayer(player, gameMap.at(15, 8));
 
         populateWithAnimals(gameMap);
         ensureRequiredSpawners(plainsGameMap);

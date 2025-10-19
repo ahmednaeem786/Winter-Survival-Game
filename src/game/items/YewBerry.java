@@ -49,7 +49,8 @@ public class YewBerry extends ConsumableItem {
      */
     @Override
     public ActionList allowableActions(Actor owner, GameMap map) {
-        ActionList actions = new ActionList();
+        ActionList actions = super.allowableActions(owner, map);
+
 
         for (Item item : owner.getItemInventory()) {
             item.asCapability(Coatable.class).ifPresent(coatable -> actions.add(new CoatAction(this, coatable, CoatingType.YEWBERRY, item.toString())));

@@ -12,15 +12,15 @@ public final class PlantFactory {
     return new AppleSapling(isPlains);
   }
 
-  public static YewSapling createYewSaplingForMap(boolean isPlains) {
-    return new YewSapling(isPlains);
+  public static YewBerrySapling createYewSaplingForMap(boolean isPlains) {
+    return new YewBerrySapling(isPlains);
   }
 
-  public static AppleTree createAppleTree() {
-    return new AppleTree();
+  public static WildAppleTree createAppleTree() {
+    return new WildAppleTree();
   }
 
-  public static YewTree createYewTree() {
-    return new YewTree();
+  public static YewBerryTree createYewTree() {
+    return new YewBerryTree();
   }
 }

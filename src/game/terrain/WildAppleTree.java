@@ -1,9 +1,14 @@
 package game.terrain;
 
 import edu.monash.fit2099.engine.actors.Actor;
+import edu.monash.fit2099.engine.positions.Exit;
 import edu.monash.fit2099.engine.positions.Ground;
 import edu.monash.fit2099.engine.positions.Location;
 import game.items.Apple;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Class representing a Wild Apple Tree.
@@ -15,6 +20,7 @@ import game.items.Apple;
 public class WildAppleTree extends Ground {
     private int turnCounter = 0;
     private final boolean canProduce;
+    private static final Random RNG = new Random();
 
     /**
      * Constructor for WildAppleTree.
@@ -58,16 +64,20 @@ public class WildAppleTree extends Ground {
      * @param item the item to drop
      */
     private void dropItem(Location treeLocation, edu.monash.fit2099.engine.items.Item item) {
-        var exits = treeLocation.getExits();
+        List<Exit> exits = new ArrayList<>(treeLocation.getExits());
+        Collections.shuffle(exits, RNG); // randomize order so apples don't always drop in same direction
 
-        for (var exit : exits) {
-            Location dropLocation = exit.getDestination();
-            // Check if the location is suitable for dropping (not occupied by actor)
-            if (!dropLocation.containsAnActor() && dropLocation.getItems().isEmpty()) {
-                dropLocation.addItem(item);
+        for (Exit exit : exits) {
+            Location dest = exit.getDestination();
+            // prefer locations with no actor and no items
+            if (!dest.containsAnActor() && dest.getItems().isEmpty()) {
+                dest.addItem(item);
                 return;
             }
         }
+
+        // fallback: if no adjacent free tile available, place on the tree tile
+        treeLocation.addItem(item);
     }
 
     /**
