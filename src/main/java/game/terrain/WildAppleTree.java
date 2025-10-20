@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 /**
  * Class representing a Wild Apple Tree.
@@ -64,20 +65,22 @@ public class WildAppleTree extends Ground {
      * @param item the item to drop
      */
     private void dropItem(Location treeLocation, edu.monash.fit2099.engine.items.Item item) {
-        List<Exit> exits = new ArrayList<>(treeLocation.getExits());
-        Collections.shuffle(exits, RNG); // randomize order so apples don't always drop in same direction
+        // Collect adjacent locations that are free (no actor, no items) and not the tree tile itself.
+        List<Location> candidates = treeLocation.getExits().stream()
+            .map(e -> e.getDestination())
+            .filter(dest -> dest != treeLocation) // defensive - shouldn't be equal, but keep for clarity
+            .filter(dest -> !dest.containsAnActor())
+            .filter(dest -> dest.getItems().isEmpty())
+            .collect(Collectors.toList());
 
-        for (Exit exit : exits) {
-            Location dest = exit.getDestination();
-            // prefer locations with no actor and no items
-            if (!dest.containsAnActor() && dest.getItems().isEmpty()) {
-                dest.addItem(item);
-                return;
-            }
+        if (candidates.isEmpty()) {
+            // No place to drop the apple — do nothing.
+            return;
         }
 
-        // fallback: if no adjacent free tile available, place on the tree tile
-        treeLocation.addItem(item);
+        // Randomly choose one of the free adjacent tiles
+        Location chosen = candidates.get(RNG.nextInt(candidates.size()));
+        chosen.addItem(item);
     }
 
     /**
