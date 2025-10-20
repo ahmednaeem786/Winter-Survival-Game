@@ -15,7 +15,26 @@ import java.util.Random;
 
 /**
  * Unit tests for REQ1: Flora II lifecycle and fruit production.
- * Each test below includes multiple cases (normal, boundary, edge) as required by the rubric.
+ *
+ * <p>
+ * Each test contains multiple cases (normal, boundary and edge) as required by the rubric:
+ * <ul>
+ *   <li>Forest sprout → sapling → tree lifecycle and apple drops</li>
+ *   <li>Plains sprout skipping sapling and frequent apple production</li>
+ *   <li>Yew sapling probabilistic growth plus plains production frequency</li>
+ * </ul>
+ * </p>
+ *
+ * <p>Implementation notes:
+ * <ul>
+ *   <li>We attach the test maps to an anonymous concrete {@link World} so that {@link GameMap#tick()}
+ *       runs without NullPointerException (the engine expects the map to belong to a World).</li>
+ *   <li>Tests seed {@link Snow.SpawnHelper} RNG to test deterministic outcomes for probabilistic behaviour.
+ *       The {@link #tearDown()} resets the RNG so tests don't leak state between each other.</li>
+ * </ul>
+ * </p>
+ *
+ * @author Ahmed
  */
 public class WildPlantsLifecycleTest {
 
@@ -34,7 +53,8 @@ public class WildPlantsLifecycleTest {
         ".....",
         ".....");
 
-    // World is abstract so we create an anonymous concrete subclass for tests
+    // World is abstract so we create an anonymous concrete subclass for tests and attach maps.
+
     World testWorld = new World(new Display()) { };
     testWorld.addGameMap(forestMap);
     testWorld.addGameMap(plainsMap);
@@ -49,10 +69,11 @@ public class WildPlantsLifecycleTest {
   }
 
   /**
-   * Test 1 (multiple cases):
-   * - Normal: Forest sprout becomes sapling after 3 ticks and tree after further 5 ticks; apples drop.
-   * - Boundary: check that after 2 ticks nothing changed but after 3 tick it does.
-   * - Edge: If adjacent tiles are occupied, apples should be placed in first free adjacent tile (no crash).
+   * Test 1: Forest sprout lifecycle and apple drops.
+   * Cases:
+   *  - Boundary: after 2 ticks still a sprout
+   *  - Normal: after 3 ticks -> sapling; after 3+5 ticks -> tree; tree should drop apple within 3 ticks
+   *  - Edge: if adjacent tiles are blocked, tree should not drop apple on its own tile and no crash occurs
    */
   @Test
   void forestSprout_grows_sapling_then_tree_and_drops_apples_cases() throws Exception {
@@ -98,23 +119,25 @@ public class WildPlantsLifecycleTest {
     loc.getExits().forEach(e ->
         e.getDestination().addItem(new edu.monash.fit2099.engine.items.Item("Blocker", 'B', false) { })
     );
-    for (int i = 0; i < 3; i++) forestMap.tick(); // tick more to attempt a drop
+    for (int i = 0; i < 3; i++) forestMap.tick(); // extra ticks to attempt further drops
     // validate no apple ended up on the tree location itself
     assertTrue(loc.getItems().stream().noneMatch(it -> it.getClass().getSimpleName().toLowerCase().contains("apple")),
         "Tree should not drop apple on its own tile even if adjacent tiles blocked (edge case)");
   }
 
-
   /**
-   * Test 2 (three cases): Plains sprout should skip sapling stage and become tree after 3 turns.
-   * Cases: normal, boundary (2 ticks no-change, 3 ticks -> tree), apple production frequency (sprouts in plains produce every 1 turn as spec).
+   * Test 2: Plains sprout should skip sapling stage and become a tree after 3 turns.
+   * Cases:
+   *  - Boundary: after 2 ticks still sprout
+   *  - Normal: after 3 ticks -> tree (skip sapling)
+   *  - Apple frequency: plains trees produce apples more frequently (sprouts -> apple each turn after tree)
    */
   @Test
   void plainsSprout_skips_sapling_and_becomes_tree_cases() throws Exception {
     Location p = plainsMap.at(1, 1);
     p.setGround(PlantFactory.createAppleSproutForMap(true)); // true => plains semantics (your code)
 
-    // after 2 ticks should still be sprouting
+    // boundary: 2 ticks still sprout
     for (int i = 0; i < 2; i++) plainsMap.tick();
     assertTrue(p.getGround().getClass().getSimpleName().toLowerCase().contains("sprout"),
         "Plains sprout should not be tree before 3 ticks (boundary)");
@@ -139,7 +162,11 @@ public class WildPlantsLifecycleTest {
   }
 
   /**
-   * Test 3: Yew Berry sapling growth chance (50%). We seed RNG to check both growth and non-growth outcomes (3 cases).
+   * Test 3: Yew Berry sapling growth probability (50%) — deterministic checks using seeded RNG.
+   * Cases:
+   *  - Seed a RNG which should lead to growth within 3 ticks (deterministic).
+   *  - Seed a different RNG which should not grow (deterministic non-growth).
+   *  - Plains sapling produces Yew berries every 2 turns.
    */
   @Test
   void yewSapling_growth_probability_deterministic_cases() throws Exception {

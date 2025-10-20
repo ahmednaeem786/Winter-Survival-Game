@@ -10,18 +10,73 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Represents a wild apple sprout on the map.
+ *
+ * <p>Behaviour summary:
+ * <ul>
+ *   <li>On the Plains: the sprout produces an {@link Apple} every turn and becomes a {@link WildAppleTree}
+ *       after 3 ticks (skips the sapling stage).</li>
+ *   <li>In the Forest: the sprout grows into an {@link AppleSapling} after 3 ticks (sapling stage then applies).</li>
+ *   <li>Apples are dropped into a random adjacent free tile; if all adjacent tiles are blocked, the apple
+ *       is placed on the sprout's own tile (fallback).</li>
+ * </ul>
+ * </p>
+ *
+ * <p>Notes:
+ * <ul>
+ *   <li>This class contains a static RNG for shuffling adjacent exits. For deterministic unit tests you can
+ *       seed this RNG globally or refactor to inject a Random instance.</li>
+ * </ul>
+ * </p>
+ *
+ * @author Ahmed
+ */
 public class AppleSprout extends Ground {
 
+  /**
+   * Age of the sprout in ticks.
+   */
   private int age = 0;
+
+  /**
+   * Turns since last apple production (used for plains behaviour).
+   */
   private int turnsSinceLastApple = 0;
+
+  /**
+   * Flag indicating whether this sprout was created for the Plains map.
+   * Plains sprouts follow different lifecycle rules from Forest sprouts.
+   */
   private final boolean isPlains;
+
+  /**
+   * RNG used to randomize adjacent exit order when dropping apples.
+   * <p>
+   * Consider making RNG injectable for deterministic unit testing if needed.
+   * </p>
+   */
   private static final Random RNG = new Random();
 
+  /**
+   * Creates an AppleSprout.
+   *
+   * @param isPlains true when the sprout is on the Plains map (plains semantics apply)
+   */
   public AppleSprout(boolean isPlains) {
     super(',', "Wild Apple Sprout");
     this.isPlains = isPlains;
   }
 
+  /**
+   * Tick called each game turn. Advances age and performs map-specific lifecycle rules:
+   * <ul>
+   *   <li>Plains: produce an apple every turn; after 3 ticks become a {@link WildAppleTree}.</li>
+   *   <li>Forest: after 3 ticks become an {@link AppleSapling} (sapling stage).</li>
+   * </ul>
+   *
+   * @param location the Location this sprout occupies
+   */
   @Override
   public void tick(Location location) {
     super.tick(location);
@@ -32,6 +87,7 @@ public class AppleSprout extends Ground {
       turnsSinceLastApple++;
       if (turnsSinceLastApple >= 1) {
         turnsSinceLastApple = 0;
+        //Attempting to drop apple into a nearby free tile
         dropAppleNearby(location, new Apple());
       }
       // after 3 turns become tree (skip sapling)
@@ -46,7 +102,23 @@ public class AppleSprout extends Ground {
     }
   }
 
+  /**
+   * Attempts to place the apple into a random adjacent free tile. Uses a shuffled copy of the exits
+   * so that distribution across neighbours is non-deterministic in gameplay.
+   *
+   * <p>The method prefers tiles that:
+   * <ul>
+   *   <li>are not occupied by an actor, and</li>
+   *   <li>have no items currently</li>
+   * </ul>
+   * If no such tile exists, the apple is placed on the sprout's own tile (fallback) to avoid losing the item.
+   * </p>
+   *
+   * @param here  the sprout's current location
+   * @param apple the apple to place
+   */
   private void dropAppleNearby(Location here, Item apple) {
+    // Copy exits to a mutable list and shuffle to randomize pickup location
     List<Exit> exits = new ArrayList<>(here.getExits());
     Collections.shuffle(exits, RNG);
     for (Exit exit : exits) {
@@ -56,7 +128,7 @@ public class AppleSprout extends Ground {
         return;
       }
     }
-    // fallback
+    // Fallback: if all adjacent tiles are blocked, place apple on this tile
     here.addItem(apple);
   }
 }
