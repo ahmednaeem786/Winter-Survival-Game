@@ -11,6 +11,8 @@ import game.quest.QuestTracker;
 import game.quest.QuestService;
 import game.quest.QuestParticipant;
 import game.quest.QuestParticipantRegistry;
+import game.quest.RewardDistributor;
+import game.quest.SimpleRewardDistributor;
 
 import java.util.List;
 
@@ -22,6 +24,7 @@ public class QuestAction extends Action {
 
     private final Questmaster questmaster;
     private final QuestService questService;
+    private final RewardDistributor rewardDistributor;
 
     /**
      * DI-friendly constructor. Pass a {@link QuestService} (e.g., Gemini-backed) from outside.
@@ -29,6 +32,7 @@ public class QuestAction extends Action {
     public QuestAction(Questmaster questmaster, QuestService questService) {
         this.questmaster = questmaster;
         this.questService = questService == null ? new GPTQuestGenerator() : questService;
+        this.rewardDistributor = new SimpleRewardDistributor();
     }
 
     /**
@@ -45,6 +49,12 @@ public class QuestAction extends Action {
             return String.format("%s regards you in silence.", questmaster);
         }
         QuestTracker tracker = participant.getQuestTracker();
+
+        // If any completed quests exist and unclaimed, auto-claim and report
+        String claimMsg = claimCompletedIfAny(tracker, participant, actor);
+        if (claimMsg != null) {
+            return claimMsg;
+        }
 
         List<Quest> active = tracker.getActive();
         if (active.isEmpty()) {
@@ -83,5 +93,22 @@ public class QuestAction extends Action {
             }
         }
         return sb.toString().trim();
+    }
+
+    private String claimCompletedIfAny(QuestTracker tracker, QuestParticipant participant, Actor asActor) {
+        StringBuilder sb = new StringBuilder();
+        boolean any = false;
+        for (Quest q : tracker.getCompleted()) {
+            if (q.getStatus() == game.quest.QuestStatus.COMPLETED) {
+                String msg = rewardDistributor.distribute(q, participant, asActor);
+                q.markClaimed();
+                if (!any) {
+                    sb.append("The Questmaster smiles. You have completed quests!\n");
+                }
+                any = true;
+                sb.append(msg).append("\n");
+            }
+        }
+        return any ? sb.toString().trim() : null;
     }
 }
