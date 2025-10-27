@@ -14,6 +14,10 @@ import game.items.Bedroll;
 import game.items.Bottle;
 import game.weapons.BareFist;
 import game.quest.QuestTracker;
+import game.quest.QuestParticipant;
+import game.quest.QuestParticipantRegistry;
+import edu.monash.fit2099.engine.positions.Location;
+import edu.monash.fit2099.engine.positions.Ground;
 
 /**
  * Class representing the Player (Explorer).
@@ -21,7 +25,7 @@ import game.quest.QuestTracker;
  * @author Muhamad Shafy Dimas Rafarrel
  * @version 3.8
  */
-public class Player extends GameActor implements HydrationCapability {
+public class Player extends GameActor implements HydrationCapability, QuestParticipant {
     private BaseActorAttribute hydration;
     private BaseActorAttribute warmth;
     private final QuestTracker questTracker = new QuestTracker();
@@ -49,6 +53,8 @@ public class Player extends GameActor implements HydrationCapability {
         this.addItemToInventory(new Bedroll());
         this.addItemToInventory(new Bottle());
         this.addItemToInventory(new Apple());
+
+        QuestParticipantRegistry.register(this, this);
     }
 
     /**
@@ -66,6 +72,15 @@ public class Player extends GameActor implements HydrationCapability {
     @Override
     public Action playTurn(ActionList actions, Action lastAction, GameMap map, Display display) {
         tickStatusEffects(map);
+        // Quest VISIT tracking: record location-based visits in order
+        try {
+            Location here = map.locationOf(this);
+            Ground ground = here.getGround();
+            String cls = ground.getClass().getSimpleName();
+            if ("Cave".equals(cls) || "Tundra".equals(cls) || "Meadow".equals(cls)) {
+                questTracker.recordVisit(cls);
+            }
+        } catch (Exception ignored) { }
         // Check if player is unconscious (hydration or warmth at 0)
         if (hydration.get() <= 0 || warmth.get() <= 0) {
             display.println(name + " becomes unconscious! Game Over!");

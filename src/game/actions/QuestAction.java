@@ -3,13 +3,14 @@ package game.actions;
 import edu.monash.fit2099.engine.actions.Action;
 import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.positions.GameMap;
-import game.actors.Player;
 import game.actors.Questmaster;
 import game.quest.GPTQuestGenerator;
 import game.quest.Quest;
 import game.quest.QuestObjective;
 import game.quest.QuestTracker;
 import game.quest.QuestService;
+import game.quest.QuestParticipant;
+import game.quest.QuestParticipantRegistry;
 
 import java.util.List;
 
@@ -39,12 +40,11 @@ public class QuestAction extends Action {
 
     @Override
     public String execute(Actor actor, GameMap map) {
-        if (!(actor instanceof Player)) {
+        QuestParticipant participant = QuestParticipantRegistry.get(actor);
+        if (participant == null) {
             return String.format("%s regards you in silence.", questmaster);
         }
-
-        Player player = (Player) actor;
-        QuestTracker tracker = player.getQuestTracker();
+        QuestTracker tracker = participant.getQuestTracker();
 
         List<Quest> active = tracker.getActive();
         if (active.isEmpty()) {
