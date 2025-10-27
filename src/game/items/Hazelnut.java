@@ -4,6 +4,8 @@ import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.actors.attributes.ActorAttributeOperation;
 import edu.monash.fit2099.engine.actors.attributes.BaseAttributes;
 import edu.monash.fit2099.engine.positions.GameMap;
+import edu.monash.fit2099.engine.items.PickUpAction;
+import game.actions.TrackedPickUpAction;
 
 /**
  * Class representing a Hazelnut item.
@@ -20,6 +22,11 @@ public class Hazelnut extends ConsumableItem {
      */
     public Hazelnut() {
         super("Hazelnut", 'n', true);
+    }
+
+    @Override
+    public PickUpAction getPickUpAction(Actor actor) {
+        return new TrackedPickUpAction(this);
     }
 
     /**

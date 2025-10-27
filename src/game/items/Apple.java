@@ -3,6 +3,8 @@ package game.items;
 import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.positions.GameMap;
 import game.utils.HydrationUtils;
+import edu.monash.fit2099.engine.items.PickUpAction;
+import game.actions.TrackedPickUpAction;
 
 /**
  * Class representing an Apple item.
@@ -18,6 +20,11 @@ public class Apple extends ConsumableItem {
      */
     public Apple() {
         super("Apple", 'a', true);
+    }
+
+    @Override
+    public PickUpAction getPickUpAction(Actor actor) {
+        return new TrackedPickUpAction(this);
     }
 
     /**
