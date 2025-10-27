@@ -16,6 +16,7 @@ import edu.monash.fit2099.engine.positions.Location;
 import edu.monash.fit2099.engine.positions.World;
 import game.abilities.Abilities;
 import game.actors.*;
+import game.actors.Questmaster;
 import game.items.TeleportCube;
 import game.teleportation.TeleportDestination;
 import game.terrain.*;
@@ -49,14 +50,14 @@ public class Earth extends World {
 
     static {
         SPAWN_PROFILES = new HashMap<>();
-        
+
         // Forest map spawn profile
         Map<Class<?>, List<Class<? extends Actor>>> forestProfile = new HashMap<>();
         forestProfile.put(game.terrain.Tundra.class, Arrays.asList(Bear.class));
         forestProfile.put(game.terrain.Cave.class, Arrays.asList(Bear.class, Wolf.class, Deer.class));
         forestProfile.put(game.terrain.Meadow.class, Arrays.asList(Deer.class));
         SPAWN_PROFILES.put("Forest", forestProfile);
-        
+
         // Plains map spawn profile
         Map<Class<?>, List<Class<? extends Actor>>> plainsProfile = new HashMap<>();
         plainsProfile.put(game.terrain.Tundra.class, Arrays.asList(Wolf.class));
@@ -83,21 +84,21 @@ public class Earth extends World {
     protected void gameLoop() throws GameEngineException {
         // Increment the global turn counter for spawning
         SpawnHelper.incrementTurn();
-        
+
         // Handle animal warmth decrease every turn
         handleAnimalWarmthDecrease();
-        
+
         // Get the player's current map
         GameMap playersMap = actorLocations.locationOf(player).map();
-        
+
         // Tick over all the maps (for terrain ticks, etc.)
         for (GameMap gameMap : gameMaps) {
             gameMap.tick();
         }
-        
+
         // Draw the player's map
         playersMap.draw(display);
-        
+
         // Process all the actors, but only display actions for actors on the player's map
         for (Actor actor : actorLocations) {
             if (stillRunning()) {
@@ -105,11 +106,11 @@ public class Earth extends World {
             }
         }
     }
-    
+
     /**
      * Process an actor's turn, but only display the result if the actor is on the specified map.
      * This is a custom version of the parent class's processActorTurn method.
-     * 
+     *
      * @param actor the actor whose turn is being processed
      * @param playersMap the map the player is currently on (used to filter display output)
      */
@@ -118,32 +119,32 @@ public class Earth extends World {
         Location here;
         here = actorLocations.locationOf(actor);
         GameMap map = here.map();
-        
+
         // Prepare all allowable actions for this actor
         ActionList actions = prepareActorActions(actor, here);
-        
+
         // Use a dummy display for actors not on the player's map to suppress their messages
         Display actorDisplay = (map == playersMap) ? display : new Display();
-        
+
         // Get the action from the actor
         Action action = actor.playTurn(actions, lastActionMap.get(actor), map, actorDisplay);
-        
+
         // Record the action
         lastActionMap.put(actor, action);
-        
+
         // Execute the action
         String result = action.execute(actor, map);
-        
+
         // Only display the result if the actor is on the player's current map
         if (map == playersMap) {
             display.println(result);
         }
     }
-    
+
     /**
      * Prepare all allowable actions for an actor at a specific location.
      * This replicates the logic from World.prepareAllowableActions.
-     * 
+     *
      * @param actor the actor
      * @param here the actor's current location
      * @return list of all allowable actions
@@ -151,22 +152,22 @@ public class Earth extends World {
     private ActionList prepareActorActions(
             Actor actor,
             Location here) {
-        
+
         ActionList actions = new ActionList();
-        
+
         // Actions from items in inventory
         for (Item item : actor.getItemInventory()) {
             actions.add(item.allowableActions(actor, here.map()));
             actions.add(item.getDropAction(actor));
         }
-        
+
         // Actions from current ground
         actions.add(here.getGround().allowableActions(actor, here, ""));
-        
+
         // Actions from surrounding locations
         for (Exit exit : here.getExits()) {
             Location destination = exit.getDestination();
-            
+
             if (actorLocations.isAnActorAt(destination)) {
                 Actor otherActor = actorLocations.getActorAt(destination);
                 actions.add(otherActor.allowableActions(actor, exit.getName(), here.map()));
@@ -178,19 +179,19 @@ public class Earth extends World {
             }
             actions.add(destination.getMoveAction(actor, exit.getName(), exit.getHotKey()));
         }
-        
+
         // Actions from items on the ground
         for (Item item : here.getItems()) {
             actions.add(item.allowableActions(here));
             actions.add(item.getPickUpAction(actor));
         }
-        
+
         // Add do-nothing option
         actions.add(new DoNothingAction());
-        
+
         return actions;
     }
-    
+
     /**
      * Handles warmth decrease for all animals every turn.
      * Animals lose 1 warmth each turn, and become unconscious when warmth reaches 0.
@@ -200,19 +201,19 @@ public class Earth extends World {
     private void handleAnimalWarmthDecrease() {
         // Get the player's current map
         GameMap playersMap = actorLocations.locationOf(player).map();
-        
+
         // Process all actors on all maps
         for (GameMap gameMap : gameMaps) {
             // Check if this is the player's current map
             boolean isPlayersMap = (gameMap == playersMap);
-            
+
             // Get all actors on this map
             for (int x = 0; x < gameMap.getXRange().max(); x++) {
                 for (int y = 0; y < gameMap.getYRange().max(); y++) {
                     try {
                         if (gameMap.at(x, y).containsAnActor()) {
                             Actor actor = gameMap.at(x, y).getActor();
-                            
+
                             // Check if actor has warmth attribute (only animals with warmth need processing)
                             if (actor.hasStatistic(BaseAttributes.WARMTH)) {
                                 // Check if actor has cold resistance
@@ -224,14 +225,14 @@ public class Earth extends World {
                                 } else {
                                     // Decrease warmth by 1 each turn for non-resistant animals
                                     actor.modifyAttribute(
-                                        BaseAttributes.WARMTH,
-                                        ActorAttributeOperation.DECREASE,
-                                        1
+                                            BaseAttributes.WARMTH,
+                                            ActorAttributeOperation.DECREASE,
+                                            1
                                     );
-                                    
+
                                     // Check current warmth level
                                     int currentWarmth = actor.getAttribute(BaseAttributes.WARMTH);
-                                    
+
                                     // Only show status messages for animals on the player's map
                                     if (isPlayersMap) {
                                         // Show status messages based on warmth level
@@ -249,7 +250,7 @@ public class Earth extends World {
                                             System.out.println(actor + " feels cold and is looking for warmth.");
                                         }
                                     }
-                                    
+
                                     // Remove actor from map if warmth reaches 0 (regardless of which map)
                                     if (currentWarmth <= 0) {
                                         gameMap.removeActor(actor);
@@ -320,6 +321,12 @@ public class Earth extends World {
         populateWithAnimals(gameMap);
         ensureRequiredSpawners(plainsGameMap);
         setupTeleportation(gameMap, plainsGameMap, player);
+
+        // Place the Questmaster at a fixed location in the Forest
+        try {
+            gameMap.addActor(new Questmaster(), gameMap.at(6, 5));
+        } catch (GameEngineException e) {
+        }
     }
 
     /**
@@ -365,7 +372,7 @@ public class Earth extends World {
 
     /**
      * Gets the spawn profile for a specific map.
-     * 
+     *
      * @param mapName the name of the map
      * @return the spawn profile for the map, or empty map if not found
      */
@@ -375,7 +382,7 @@ public class Earth extends World {
 
     /**
      * Gets the allowed species for a specific terrain type on a specific map.
-     * 
+     *
      * @param mapName the name of the map
      * @param terrainClass the class of the terrain type
      * @return list of allowed actor classes for this terrain on this map
@@ -388,13 +395,13 @@ public class Earth extends World {
     /**
      * Ensures that at least one of each required spawner type exists on the map.
      * If a required spawner is missing, converts an appropriate tile to that spawner type.
-     * 
+     *
      * @param gameMap the map to ensure spawners on
      */
     private void ensureRequiredSpawners(GameMap gameMap) {
         String mapName = gameMap.toString();
         Map<Class<?>, List<Class<? extends Actor>>> profile = getSpawnProfile(mapName);
-        
+
         // Check for each required terrain type
         for (Class<?> terrainClass : profile.keySet()) {
             if (!hasTerrainType(gameMap, terrainClass)) {
@@ -406,7 +413,7 @@ public class Earth extends World {
 
     /**
      * Checks if the map has at least one tile of the specified terrain type.
-     * 
+     *
      * @param gameMap the map to check
      * @param terrainClass the terrain class to look for
      * @return true if the terrain type exists on the map
@@ -431,14 +438,14 @@ public class Earth extends World {
     /**
      * Converts a suitable tile to the specified terrain type.
      * Randomly selects a Snow tile to ensure spawners are distributed across the map.
-     * 
+     *
      * @param gameMap the map to modify
      * @param terrainClass the terrain class to convert to
      */
     private void convertTileToTerrain(GameMap gameMap, Class<?> terrainClass) {
         // Collect all available Snow tiles
         java.util.List<Location> snowTiles = new java.util.ArrayList<>();
-        
+
         for (int x = 0; x < gameMap.getXRange().max(); x++) {
             for (int y = 0; y < gameMap.getYRange().max(); y++) {
                 try {
@@ -452,16 +459,16 @@ public class Earth extends World {
                 }
             }
         }
-        
+
         // If no snow tiles available, return
         if (snowTiles.isEmpty()) {
             return;
         }
-        
+
         // Randomly select a snow tile to convert
         java.util.Random random = new java.util.Random();
         Location selectedTile = snowTiles.get(random.nextInt(snowTiles.size()));
-        
+
         // Convert the selected snow tile to the required terrain type
         if (terrainClass == Cave.class) {
             selectedTile.setGround(new Cave());

@@ -13,6 +13,7 @@ import game.items.Apple;
 import game.items.Bedroll;
 import game.items.Bottle;
 import game.weapons.BareFist;
+import game.quest.QuestTracker;
 
 /**
  * Class representing the Player (Explorer).
@@ -23,6 +24,7 @@ import game.weapons.BareFist;
 public class Player extends GameActor implements HydrationCapability {
     private BaseActorAttribute hydration;
     private BaseActorAttribute warmth;
+    private final QuestTracker questTracker = new QuestTracker();
 
     /**
      * Constructor for creating a new Player character.
@@ -98,5 +100,12 @@ public class Player extends GameActor implements HydrationCapability {
      */
     public void increaseHydration(int amount) {
         this.hydration.increase(amount);
+    }
+
+    /**
+     * Access the player's quest tracker.
+     */
+    public QuestTracker getQuestTracker() {
+        return questTracker;
     }
 }
