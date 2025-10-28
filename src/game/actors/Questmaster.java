@@ -7,6 +7,7 @@ import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.displays.Display;
 import edu.monash.fit2099.engine.positions.GameMap;
 import game.actions.QuestAction;
+import game.quest.provider.QuestServiceFactory;
 
 /**
  * The Mystical Questmaster: a stationary NPC offering dynamic quests.
@@ -28,7 +29,7 @@ public class Questmaster extends GameActor {
     public ActionList allowableActions(Actor otherActor, String direction, GameMap map) {
         ActionList list = new ActionList();
         // Allow anyone to talk to the Questmaster when adjacent
-        list.add(new QuestAction(this));
+        list.add(new QuestAction(this, QuestServiceFactory.create()));
         return list;
     }
 }

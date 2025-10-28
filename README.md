@@ -136,3 +136,96 @@ Chimeras can be tamed with Apple or YewBerry. When tamed:
   - Ice: Check for max health increase messages and frostbite status
   - Poison: Watch for "X is poisoned! (Y turns remaining)" messages
 3. **Tame a chimera** with Apple/YewBerry and verify it follows you and assists in combat
+
+# REQ5: The Questmaster NPC - Dynamic Quest System
+
+## Overview
+A stationary NPC called the Questmaster is located in the forest. This NPC uses the Gemini API to generate quest dialogue and offers players random quests with item rewards.
+
+## Core Features
+
+### The Questmaster NPC
+* Fixed location in the forest map
+* Players can interact to:
+  * Accept new quests
+  * Check current quest progress
+  * Turn in completed quests for rewards
+* Uses Gemini API to generate unique dialogue for each quest
+
+### Quest Types
+The Questmaster offers three types of quests:
+
+1. **Hunter's Challenge**
+  * Objective: Kill X number of creatures (wolves, bears, or deer)
+  * Rewards: Combat items (Poisoned Axe, Enhanced Bow, Special Arrows)
+
+2. **Gatherer's Task**
+  * Objective: Collect X quantity of items (berries, hazelnuts, apples)
+  * Rewards: Utility items (Enhanced Bottle, Bedroll)
+
+3. **Explorer's Journey**
+  * Objective: Visit specific locations
+  * Rewards: Travel items (TeleportCube, Special Torch)
+
+### Quest System Mechanics
+* Questmaster randomly selects quest type, targets, and quantities
+* Player can have one active quest at a time
+* Quest progress is tracked automatically as player plays
+* Rewards are given upon quest completion
+
+## Example Scenario
+```
+Player: *Approaches Questmaster*
+Questmaster: [AI-generated greeting]
+"Ah, brave wanderer! I sense you seek purpose in these woods. I offer you three trials:"
+
+1. "Slay 3 wolves to prove your might - a poisoned axe shall be your reward"
+2. "Gather 5 yew berries from the depths of the forest - a magical bedroll awaits"
+3. "Visit the frozen tundra and return with proof - a special torch I shall grant"
+
+[Player selects quest 1]
+
+Questmaster: [AI-generated quest acceptance dialogue]
+"May your blade strike true. Return when the wolves have fallen."
+
+[Quest tracking begins]
+```
+
+## New Classes Required
+
+### Questmaster NPC
+* **Class:** `Questmaster`
+* **Package:** `game.actors`
+* **Description:** The NPC that offers quests to players. Utilizes the Gemini API to generate quest dialogue and manages quest interactions.
+
+### Quest Management
+* **Class:** `Quest`
+* **Package:** `game.quest`
+* **Description:** Represents a quest with properties such as title, description, objectives, and rewards.
+
+* **Class:** `QuestService`
+* **Package:** `game.quest`
+* **Description:** Interface for generating quests. Implemented by classes that interact with the Gemini API.
+
+* **Class:** `GeminiQuestGenerator`
+* **Package:** `game.quest`
+* **Description:** Implements QuestService and uses the Gemini API to generate quests based on player context.
+
+### Quest Objectives
+* **Class:** `QuestObjective`
+* **Package:** `game.quest`
+* **Description:** Represents the specific objectives of a quest (e.g., kill a certain number of creatures, gather items).
+
+* **Class:** `QuestReward`
+* **Package:** `game.quest`
+* **Description:** Represents the rewards given upon quest completion (e.g., items, weapons).
+
+### Quest Tracking
+* **Class:** `QuestTracker`
+* **Package:** `game.quest`
+* **Description:** Manages active quests for the player, tracks progress, and verifies completion.
+
+### Actions
+* **Class:** `QuestAction`
+* **Package:** `game.actions`
+* **Description:** Represents the action of interacting with the Questmaster to start or complete quests.

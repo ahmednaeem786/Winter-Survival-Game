@@ -1,18 +1,19 @@
-package game.quest;
+package game.quest.provider;
+import game.quest.*;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 /**
  * Placeholder AI-backed quest generator.
  * For now, produces deterministic sample quests across the three types.
- * Later, be wired to Gemini and real game context.
  */
-public class GPTQuestGenerator implements QuestService {
+public class LocalQuestGenerator implements QuestService {
     private final Random rng;
-    public GPTQuestGenerator() {
+    public LocalQuestGenerator() {
         this(new Random());
     }
-    public GPTQuestGenerator(Random rng) {
+    public LocalQuestGenerator(Random rng) {
         this.rng = rng;
     }
     @Override
