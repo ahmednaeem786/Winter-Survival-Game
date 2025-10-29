@@ -219,7 +219,7 @@ public class Earth extends World {
                                 if (actor.hasAbility(Abilities.COLD_RESISTANCE)) {
                                     // Animal is immune to cold - display status message
                                     if (isPlayersMap) {
-                                        System.out.println(actor + " is immune to cold and feels comfortable in the frozen tundra.");
+                                        display.println(actor + " is immune to cold and feels comfortable in the frozen tundra.");
                                     }
                                 } else {
                                     // Decrease warmth by 1 each turn for non-resistant animals
@@ -237,16 +237,16 @@ public class Earth extends World {
                                         // Show status messages based on warmth level
                                         if (currentWarmth <= 0) {
                                             // Animal becomes unconscious due to cold
-                                            System.out.println(actor + " becomes unconscious due to extreme cold and collapses!");
+                                            display.println(actor + " becomes unconscious due to extreme cold and collapses!");
                                         } else if (currentWarmth <= 3) {
                                             // Animal is very cold
-                                            System.out.println(actor + " shivers violently from the cold!");
+                                            display.println(actor + " shivers violently from the cold!");
                                         } else if (currentWarmth <= 5) {
                                             // Animal is cold
-                                            System.out.println(actor + " feels very cold and is struggling to stay warm.");
+                                            display.println(actor + " feels very cold and is struggling to stay warm.");
                                         } else if (currentWarmth <= 8) {
                                             // Animal is getting cold
-                                            System.out.println(actor + " feels cold and is looking for warmth.");
+                                            display.println(actor + " feels cold and is looking for warmth.");
                                         }
                                     }
                                     
