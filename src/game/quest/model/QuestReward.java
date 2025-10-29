@@ -1,4 +1,4 @@
-package game.quest;
+package game.quest.model;
 /**
  * Represents a reward granted upon quest completion.
  * For now, this is a descriptive placeholder; wiring to concrete items happens later.

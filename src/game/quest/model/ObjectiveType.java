@@ -1,4 +1,4 @@
-package game.quest;
+package game.quest.model;
 /**
  * Types of quest objectives supported by the system.
  */

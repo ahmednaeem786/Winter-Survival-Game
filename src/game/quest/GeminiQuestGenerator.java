@@ -2,6 +2,11 @@ package game.quest;
 
 import game.quest.api.ApiConfig;
 import game.quest.api.GeminiClient;
+import game.quest.core.QuestService;
+import game.quest.model.ObjectiveType;
+import game.quest.model.Quest;
+import game.quest.model.QuestObjective;
+import game.quest.model.QuestReward;
 import game.quest.provider.LocalQuestGenerator;
 
 import java.util.ArrayList;

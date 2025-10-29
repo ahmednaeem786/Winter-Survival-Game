@@ -1,5 +1,6 @@
-package game.quest;
+package game.quest.core;
 import edu.monash.fit2099.engine.actors.Actor;
+
 import java.util.Map;
 import java.util.WeakHashMap;
 /**

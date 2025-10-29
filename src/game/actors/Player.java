@@ -13,9 +13,9 @@ import game.items.Apple;
 import game.items.Bedroll;
 import game.items.Bottle;
 import game.weapons.BareFist;
-import game.quest.QuestTracker;
-import game.quest.QuestParticipant;
-import game.quest.QuestParticipantRegistry;
+import game.quest.core.QuestTracker;
+import game.quest.core.QuestParticipant;
+import game.quest.core.QuestParticipantRegistry;
 import edu.monash.fit2099.engine.positions.Location;
 import edu.monash.fit2099.engine.positions.Ground;
 

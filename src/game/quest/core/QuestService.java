@@ -1,4 +1,7 @@
-package game.quest;
+package game.quest.core;
+
+import game.quest.model.Quest;
+
 /**
  * Service that can generate quests, using an AI backend.
  */

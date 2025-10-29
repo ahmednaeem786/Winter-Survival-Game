@@ -4,8 +4,8 @@ import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.items.Item;
 import edu.monash.fit2099.engine.items.PickUpAction;
 import edu.monash.fit2099.engine.positions.GameMap;
-import game.quest.QuestParticipant;
-import game.quest.QuestParticipantRegistry;
+import game.quest.core.QuestParticipant;
+import game.quest.core.QuestParticipantRegistry;
 
 /**
  * Pick up action that records quest COLLECT progress via QuestParticipantRegistry.

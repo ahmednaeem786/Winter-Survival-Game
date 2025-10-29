@@ -1,4 +1,4 @@
-package game.quest;
+package game.quest.model;
 /**
  * Status of a quest lifecycle.
  */

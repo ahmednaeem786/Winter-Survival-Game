@@ -4,15 +4,17 @@ import edu.monash.fit2099.engine.actions.Action;
 import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.positions.GameMap;
 import game.actors.Questmaster;
+import game.quest.model.ObjectiveType;
+import game.quest.model.QuestStatus;
 import game.quest.provider.LocalQuestGenerator;
-import game.quest.Quest;
-import game.quest.QuestObjective;
-import game.quest.QuestTracker;
-import game.quest.QuestService;
-import game.quest.QuestParticipant;
-import game.quest.QuestParticipantRegistry;
-import game.quest.RewardDistributor;
-import game.quest.SimpleRewardDistributor;
+import game.quest.model.Quest;
+import game.quest.model.QuestObjective;
+import game.quest.core.QuestTracker;
+import game.quest.core.QuestService;
+import game.quest.core.QuestParticipant;
+import game.quest.core.QuestParticipantRegistry;
+import game.quest.reward.RewardDistributor;
+import game.quest.reward.SimpleRewardDistributor;
 
 import java.util.List;
 
@@ -83,7 +85,7 @@ public class QuestAction extends Action {
         sb.append(wrap(newQuest.getDescription(), 78)).append("\n");
         for (QuestObjective o : newQuest.getObjectives()) {
             sb.append(" - Objective: ").append(o.getType()).append(" ");
-            if (o.getType() == game.quest.ObjectiveType.VISIT) {
+            if (o.getType() == ObjectiveType.VISIT) {
                 // Render ordered locations on separate lines for readability
                 sb.append("\n");
                 java.util.List<String> locs = o.getOrderedLocations();
@@ -116,7 +118,7 @@ public class QuestAction extends Action {
         StringBuilder sb = new StringBuilder();
         boolean any = false;
         for (Quest q : tracker.getCompleted()) {
-            if (q.getStatus() == game.quest.QuestStatus.COMPLETED) {
+            if (q.getStatus() == QuestStatus.COMPLETED) {
                 // Consume collected items for COLLECT objectives
                 String consumeMsg = consumeCollectedItems(asActor, q);
                 String msg = rewardDistributor.distribute(q, participant, asActor);
@@ -139,7 +141,7 @@ public class QuestAction extends Action {
     private String consumeCollectedItems(Actor asActor, Quest q) {
         StringBuilder sb = new StringBuilder();
         for (QuestObjective o : q.getObjectives()) {
-            if (o.getType() == game.quest.ObjectiveType.COLLECT) {
+            if (o.getType() == ObjectiveType.COLLECT) {
                 String target = o.getTarget();
                 int toRemove = o.getRequiredAmount();
                 if (target == null || target.isBlank() || toRemove <= 0) continue;
@@ -165,13 +167,13 @@ public class QuestAction extends Action {
     private void ensureVisitObjectivePresent(Quest q) {
         if (q.getObjectives().isEmpty()) {
             java.util.List<String> route = java.util.Arrays.asList("Cave", "Tundra", "Meadow");
-            q.addObjective(new game.quest.QuestObjective(game.quest.ObjectiveType.VISIT, "Route", route.size(), route));
+            q.addObjective(new QuestObjective(ObjectiveType.VISIT, "Route", route.size(), route));
         } else {
-            for (game.quest.QuestObjective o : q.getObjectives()) {
-                if (o.getType() == game.quest.ObjectiveType.VISIT && o.getOrderedLocations().isEmpty()) {
+            for (QuestObjective o : q.getObjectives()) {
+                if (o.getType() == ObjectiveType.VISIT && o.getOrderedLocations().isEmpty()) {
                     java.util.List<String> route = java.util.Arrays.asList("Cave", "Tundra", "Meadow");
                     // Add a replacement VISIT objective only if none has steps
-                    q.addObjective(new game.quest.QuestObjective(game.quest.ObjectiveType.VISIT, "Route", route.size(), route));
+                    q.addObjective(new QuestObjective(ObjectiveType.VISIT, "Route", route.size(), route));
                     break;
                 }
             }

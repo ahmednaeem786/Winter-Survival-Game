@@ -1,5 +1,9 @@
 package game.quest.provider;
-import game.quest.*;
+import game.quest.core.QuestService;
+import game.quest.model.ObjectiveType;
+import game.quest.model.Quest;
+import game.quest.model.QuestObjective;
+import game.quest.model.QuestReward;
 
 import java.util.Arrays;
 import java.util.List;

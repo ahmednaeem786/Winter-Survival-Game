@@ -1,7 +1,7 @@
 package game.quest.provider;
 
 import game.quest.GeminiQuestGenerator;
-import game.quest.QuestService;
+import game.quest.core.QuestService;
 import game.quest.api.ApiConfig;
 import game.quest.api.HttpGeminiClient;
 

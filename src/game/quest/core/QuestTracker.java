@@ -1,4 +1,7 @@
-package game.quest;
+package game.quest.core;
+import game.quest.model.Quest;
+import game.quest.model.QuestObjective;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;

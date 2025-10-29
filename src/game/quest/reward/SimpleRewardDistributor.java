@@ -1,8 +1,11 @@
-package game.quest;
+package game.quest.reward;
 
 import edu.monash.fit2099.engine.actors.Actor;
 import game.coating.CoatingType;
 import game.items.*;
+import game.quest.core.QuestParticipant;
+import game.quest.model.Quest;
+import game.quest.model.QuestReward;
 
 import java.util.Locale;
 import java.util.Random;
