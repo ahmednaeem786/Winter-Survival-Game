@@ -229,3 +229,6 @@ Questmaster: [AI-generated quest acceptance dialogue]
 * **Class:** `QuestAction`
 * **Package:** `game.actions`
 * **Description:** Represents the action of interacting with the Questmaster to start or complete quests.
+
+Full setup guide (API, keys, SOLID rationale) is documented here:
+- `docs/design/assignment3/Questmaster-API.md`
