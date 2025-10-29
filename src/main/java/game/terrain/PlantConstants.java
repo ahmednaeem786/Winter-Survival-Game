@@ -13,6 +13,7 @@ public final class PlantConstants {
   public static final int FOREST_SPROUT_TO_SAPLING_TURNS = 3;
   public static final int SAPLING_TO_TREE_TURNS = 5;
   public static final int TREE_APPLE_DROP_INTERVAL = 3;
+  public static final int SAPLING_DROP_INTERVAL = 2;
 
   //Plains Behaviour
   public static final int PLAINS_SPROUT_TO_TREE_TURNS = 3;

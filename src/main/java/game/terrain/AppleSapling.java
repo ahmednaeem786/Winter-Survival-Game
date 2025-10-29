@@ -5,6 +5,7 @@ import edu.monash.fit2099.engine.positions.Exit;
 import edu.monash.fit2099.engine.positions.Ground;
 import edu.monash.fit2099.engine.positions.Location;
 import game.items.Apple;
+import game.terrain.Snow.SpawnHelper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,14 +44,6 @@ public class AppleSapling extends Ground {
    * Tracks turns since an apple was last produced. When >= 2, the sapling attempts to drop an apple.
    */
   private int turnsSinceLastApple = 0;
-  /**
-   * RNG (Random Number Generator) used to shuffle adjacent exits so apple-dropping is non-deterministic across runs.
-   * <p>
-   * Using a single static RNG keeps behaviour simple. For deterministic unit tests you can replace or
-   * seed this RNG (or better: refactor to inject RNG).
-   * </p>
-   */
-  private static final Random RNG = new Random();
 
   /**
    * Construct an AppleSapling.
@@ -76,13 +69,13 @@ public class AppleSapling extends Ground {
     turnsSinceLastApple++;
 
     // produce apple every 2 turns
-    if (turnsSinceLastApple >= 2) {
+    if (turnsSinceLastApple >= PlantConstants.SAPLING_DROP_INTERVAL) {
       turnsSinceLastApple = 0;
       dropAppleNearby(location, new Apple());
     }
 
     // grow into tree after 5 turns
-    if (age >= 5) {
+    if (age >= PlantConstants.SAPLING_TO_TREE_TURNS) {
       location.setGround(new WildAppleTree());
     }
   }
@@ -108,7 +101,7 @@ public class AppleSapling extends Ground {
     // Defensive copy so we can shuffle without affecting the map's internal exit collection.
     List<Exit> exits = new ArrayList<>(here.getExits());
     // Randomize search order so apples don't always go to the same neighbor (more natural distribution).
-    Collections.shuffle(exits, RNG);
+    Collections.shuffle(exits, SpawnHelper.getRandom());
 
     // Try to find a free adjacent tile (no actor, no items)
     for (Exit exit : exits) {
@@ -121,7 +114,5 @@ public class AppleSapling extends Ground {
         return;
       }
     }
-    // Fallback: if all adjacent tiles were blocked, place apple on the sapling's tile itself.
-    here.addItem(apple);
   }
 }
