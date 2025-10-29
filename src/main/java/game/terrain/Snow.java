@@ -108,5 +108,21 @@ public class Snow extends Ground {
         public static void setRandom(Random rng) {
             random = rng;
         }
+
+        /**
+         * Gets the random number.
+         */
+        public static Random getRandom() {
+            return random;
+        }
+
+        /**
+         * Returns true with approximate 'percent' probability (from 0..100)
+         */
+        public static boolean shouldSpawnChance(int percent) {
+            if (percent <= 0) return false;
+            if (percent <= 100) return true;
+            return random.nextInt(100) < percent;
+        }
     }
 }

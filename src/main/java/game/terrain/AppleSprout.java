@@ -5,10 +5,10 @@ import edu.monash.fit2099.engine.positions.Exit;
 import edu.monash.fit2099.engine.positions.Ground;
 import edu.monash.fit2099.engine.positions.Location;
 import game.items.Apple;
+import game.terrain.Snow.SpawnHelper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Represents a wild apple sprout on the map.
@@ -51,14 +51,6 @@ public class AppleSprout extends Ground {
   private final boolean isPlains;
 
   /**
-   * RNG used to randomize adjacent exit order when dropping apples.
-   * <p>
-   * Consider making RNG injectable for deterministic unit testing if needed.
-   * </p>
-   */
-  private static final Random RNG = new Random();
-
-  /**
    * Creates an AppleSprout.
    *
    * @param isPlains true when the sprout is on the Plains map (plains semantics apply)
@@ -85,18 +77,18 @@ public class AppleSprout extends Ground {
     if (isPlains) {
       // Plains sprout: produces apple every turn
       turnsSinceLastApple++;
-      if (turnsSinceLastApple >= 1) {
+      if (turnsSinceLastApple >= PlantConstants.PLAINS_SPROUT_DROP_INTERVAL) {
         turnsSinceLastApple = 0;
         //Attempting to drop apple into a nearby free tile
         dropAppleNearby(location, new Apple());
       }
       // after 3 turns become tree (skip sapling)
-      if (age >= 3) {
+      if (age >= PlantConstants.FOREST_SPROUT_TO_SAPLING_TURNS) {
         location.setGround(new WildAppleTree());
       }
     } else {
       // Forest sprout: grow into sapling after 3 turns
-      if (age >= 3) {
+      if (age >= PlantConstants.FOREST_SPROUT_TO_SAPLING_TURNS) {
         location.setGround(new AppleSapling(isPlains));
       }
     }
@@ -120,7 +112,7 @@ public class AppleSprout extends Ground {
   private void dropAppleNearby(Location here, Item apple) {
     // Copy exits to a mutable list and shuffle to randomize pickup location
     List<Exit> exits = new ArrayList<>(here.getExits());
-    Collections.shuffle(exits, RNG);
+    Collections.shuffle(exits, SpawnHelper.getRandom());
     for (Exit exit : exits) {
       Location dest = exit.getDestination();
       if (!dest.containsAnActor() && dest.getItems().isEmpty()) {
