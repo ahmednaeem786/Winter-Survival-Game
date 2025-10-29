@@ -5,6 +5,7 @@ import edu.monash.fit2099.engine.positions.Exit;
 import edu.monash.fit2099.engine.positions.Ground;
 import edu.monash.fit2099.engine.positions.Location;
 import game.items.Apple;
+import game.terrain.Snow.SpawnHelper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -21,7 +22,6 @@ import java.util.stream.Collectors;
 public class WildAppleTree extends Ground {
     private int turnCounter = 0;
     private final boolean canProduce;
-    private static final Random RNG = new Random();
 
     /**
      * Constructor for WildAppleTree.
@@ -52,7 +52,7 @@ public class WildAppleTree extends Ground {
         }
 
         turnCounter++;
-        if (turnCounter >= 3) {
+        if (turnCounter >= PlantConstants.TREE_APPLE_DROP_INTERVAL) {
             turnCounter = 0;
             dropItem(location, new Apple());
         }
@@ -79,7 +79,7 @@ public class WildAppleTree extends Ground {
         }
 
         // Randomly choose one of the free adjacent tiles
-        Location chosen = candidates.get(RNG.nextInt(candidates.size()));
+        Location chosen = candidates.get(SpawnHelper.getRandom().nextInt(candidates.size()));
         chosen.addItem(item);
     }
 
