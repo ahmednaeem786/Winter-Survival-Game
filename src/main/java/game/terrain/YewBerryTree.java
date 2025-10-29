@@ -5,6 +5,7 @@ import edu.monash.fit2099.engine.positions.Exit;
 import edu.monash.fit2099.engine.positions.Ground;
 import edu.monash.fit2099.engine.positions.Location;
 import game.items.YewBerry;
+import game.terrain.Snow.SpawnHelper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -20,7 +21,6 @@ import java.util.Random;
 public class YewBerryTree extends Ground {
     private int turnCounter = 0;
     private final boolean canProduce;
-    private static final Random RNG = new Random();
 
     /**
      * Constructor for YewBerryTree.
@@ -51,7 +51,7 @@ public class YewBerryTree extends Ground {
         }
 
         turnCounter++;
-        if (turnCounter >= 5) {
+        if (turnCounter >= PlantConstants.SAPLING_TO_TREE_TURNS) {
             turnCounter = 0;
             dropItem(location, new YewBerry());
         }
@@ -65,7 +65,7 @@ public class YewBerryTree extends Ground {
      */
     private void dropItem(Location here, edu.monash.fit2099.engine.items.Item item) {
         List<Exit> exits = new ArrayList<>(here.getExits());
-        Collections.shuffle(exits, RNG);
+        Collections.shuffle(exits, SpawnHelper.getRandom());
 
         for (Exit exit : exits) {
             Location dest = exit.getDestination();
@@ -74,9 +74,6 @@ public class YewBerryTree extends Ground {
                 return;
             }
         }
-
-        // fallback: place on the tree tile only if no adjacent free tile
-        here.addItem(item);
     }
 
     /**
