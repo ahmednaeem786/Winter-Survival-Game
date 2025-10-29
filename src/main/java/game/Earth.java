@@ -235,23 +235,23 @@ public class Earth extends World {
                                     // Only show status messages for animals on the player's map
                                     if (isPlayersMap) {
                                         // Show status messages based on warmth level
-                                        if (currentWarmth <= 0) {
+                                        if (currentWarmth <= ActorConstants.WARMTH_CRITICAL) {
                                             // Animal becomes unconscious due to cold
                                             display.println(actor + " becomes unconscious due to extreme cold and collapses!");
-                                        } else if (currentWarmth <= 3) {
+                                        } else if (currentWarmth <= ActorConstants.WARMTH_VERY_COLD) {
                                             // Animal is very cold
                                             display.println(actor + " shivers violently from the cold!");
-                                        } else if (currentWarmth <= 5) {
+                                        } else if (currentWarmth <= ActorConstants.WARMTH_COLD) {
                                             // Animal is cold
                                             display.println(actor + " feels very cold and is struggling to stay warm.");
-                                        } else if (currentWarmth <= 8) {
+                                        } else if (currentWarmth <= ActorConstants.WARMTH_GETTING_COLD) {
                                             // Animal is getting cold
                                             display.println(actor + " feels cold and is looking for warmth.");
                                         }
                                     }
                                     
                                     // Remove actor from map if warmth reaches 0 (regardless of which map)
-                                    if (currentWarmth <= 0) {
+                                    if (currentWarmth <= ActorConstants.WARMTH_CRITICAL) {
                                         gameMap.removeActor(actor);
                                     }
                                 }
