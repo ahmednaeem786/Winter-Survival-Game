@@ -98,6 +98,15 @@ public class GeminiQuestGenerator implements QuestService {
                         if (v.startsWith("\"") && v.endsWith("\"")) ordered.add(v.substring(1, v.length()-1));
                     }
                 }
+                if (ot == ObjectiveType.VISIT) {
+                    if (ordered.isEmpty() || ordered.size() < 3) {
+                        ordered.clear();
+                        ordered.add("Cave");
+                        ordered.add("Tundra");
+                        ordered.add("Meadow");
+                    }
+                    amt = Math.max(amt, ordered.size());
+                }
                 q.addObjective(new QuestObjective(ot, target != null ? target : "", amt, ordered));
             }
         }
@@ -116,7 +125,6 @@ public class GeminiQuestGenerator implements QuestService {
     private static String normalizeResponse(String text) {
         if (text == null) return null;
         String t = text.trim();
-
         if (t.contains("\"candidates\"") && t.contains("\"parts\"")) {
             String extracted = extractGeminiText(t);
             if (extracted != null && !extracted.isBlank()) {

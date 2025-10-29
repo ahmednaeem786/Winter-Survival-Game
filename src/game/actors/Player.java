@@ -76,9 +76,18 @@ public class Player extends GameActor implements HydrationCapability, QuestParti
         try {
             Location here = map.locationOf(this);
             Ground ground = here.getGround();
+            String key = null;
             String cls = ground.getClass().getSimpleName();
             if ("Cave".equals(cls) || "Tundra".equals(cls) || "Meadow".equals(cls)) {
-                questTracker.recordVisit(cls);
+                key = cls;
+            } else {
+                char ch = ground.getDisplayChar();
+                if (ch == 'C') key = "Cave";
+                else if (ch == '_') key = "Tundra";
+                else if (ch == 'w') key = "Meadow";
+            }
+            if (key != null) {
+                questTracker.recordVisit(key);
             }
         } catch (Exception ignored) { }
         // Check if player is unconscious (hydration or warmth at 0)
