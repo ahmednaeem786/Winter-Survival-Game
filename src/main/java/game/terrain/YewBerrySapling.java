@@ -5,6 +5,7 @@ import edu.monash.fit2099.engine.positions.Exit;
 import edu.monash.fit2099.engine.positions.Ground;
 import edu.monash.fit2099.engine.positions.Location;
 import game.items.YewBerry;
+import game.terrain.Snow.SpawnHelper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -52,13 +53,6 @@ public class YewBerrySapling extends Ground {
   private final boolean isPlains;
 
   /**
-   * RNG used for drop shuffling and 50% growth chance.
-   * If you want deterministic unit tests, consider providing a package-private
-   * method to set this Random to a seeded instance.
-   */
-  private static final Random RNG = new Random();
-
-  /**
    * Constructs a YewBerrySapling.
    *
    * @param isPlains true if this sapling is on a Plains map (plains-specific behaviour)
@@ -82,16 +76,16 @@ public class YewBerrySapling extends Ground {
     // Plains-specific: produce a YewBerry every 2 turns
     if (isPlains) {
       berryCounter++;
-      if (berryCounter >= 2) {
+      if (berryCounter >= PlantConstants.PLAINS_YEWBERRY_DROP_INTERVAL) {
         berryCounter = 0;
         dropBerryNearby(location, new YewBerry());
       }
     }
 
     // Every 3 turns: 50% chance to grow into tree
-    if (ageCounter >= 3) {
+    if (ageCounter >= PlantConstants.YEWBERRY_GROW_ATTEMPT_TURNS) {
       ageCounter = 0;
-      if (RNG.nextBoolean()) {       // RNG.nextBoolean() gives a 50/50 result
+      if (SpawnHelper.shouldSpawnChance(PlantConstants.YEWBERRY_GROW_CHANCE_PERCENT)) {
         location.setGround(new YewBerryTree());
       }
     }
@@ -108,7 +102,7 @@ public class YewBerrySapling extends Ground {
   private void dropBerryNearby(Location here, Item berry) {
     List<Exit> exits = new ArrayList<>(here.getExits());
     // Shuffle adjacency order so dropped berries are spread around
-    Collections.shuffle(exits, RNG);
+    Collections.shuffle(exits, SpawnHelper.getRandom());
 
     for (Exit exit : exits) {
       Location dest = exit.getDestination();
@@ -117,9 +111,6 @@ public class YewBerrySapling extends Ground {
         return;
       }
     }
-
-    // fallback: place on the sapling tile only if no adjacent space is available
-    here.addItem(berry);
   }
 
   @Override
