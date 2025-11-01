@@ -230,5 +230,118 @@ Questmaster: [AI-generated quest acceptance dialogue]
 * **Package:** `game.actions`
 * **Description:** Represents the action of interacting with the Questmaster to start or complete quests.
 
-Full setup guide (API, keys, SOLID rationale) is documented here:
-- `docs/design/assignment3/Questmaster-API.md`
+Full setup guide (API, keys) is documented here:
+- `docs/design/assignment3/REQ5/Questmaster-API.md`
+
+## What’s Implemented Now (Final Design)
+
+- Provider selection and fallback
+  - Uses `GeminiQuestGenerator` when a key is present (`GEMINI_API_KEY`). When not present or on API error, falls back to `LocalQuestGenerator` for fully offline play.
+  - Factory wired at: `src/game/quest/QuestServiceFactory.java`.
+
+
+- Quest generation, structure and safety
+  - Quests have title, description and at least one objective. If an AI response omits objectives, a default VISIT route is injected so progress is always visible and deterministic.
+  - VISIT objectives default to the canonical route `[Cave, Tundra, Meadow]` and require ordered completion.
+  - COLLECT objectives are capped to a maximum of 5 items to keep pacing tight.
+
+
+- Progress tracking hooks
+  - KILL: counted when the player defeats the correct species (see `src/game/actions/AttackAction.java`).
+  - COLLECT: counted on pickup via a tracked pickup action (see `src/game/actions/TrackedPickUpAction.java`).
+  - VISIT: recorded each turn based on current ground – by class name OR tile symbol (`C`=Cave, `_`=Tundra, `w`=Meadow). Logic in `src/game/actors/Player.java`.
+
+
+- Readable, multi‑line progress and offers
+  - Quest offers wrap long descriptions (~78 chars) and list VISIT steps one per line.
+  - Progress view prints a checklist for VISIT: `[x]` done, `[>]` current, `[ ]` pending.
+  - Implemented in `src/game/actions/QuestAction.java` and `src/game/quest/QuestObjective.java`.
+
+
+- Claim flow and inventory effects
+  - When claiming a completed COLLECT quest, the required number of collected items is removed from the player’s inventory (extras remain). See `src/game/actions/QuestAction.java`.
+
+
+- Reward distribution (mixing AI names with in‑game items)
+  - Fuzzy mapping converts common AI names into concrete items:
+    - “poison/yew” → Yewberry‑coated Axe; “frost/snow/ice” → Snow‑coated Axe
+    - “arrow(s)/bow” → Bow; “torch/flame” → Torch; “teleport/cube/portal” → Teleport Cube
+    - “bottle/flask/canteen” → Bottle; “bed/bedroll/sleep” → Bedroll
+  - Unknown rewards still grant a useful random item (e.g., Bow, Torch, Teleport Cube, infused Axe, Bottle).
+  - Implemented in `src/game/quest/SimpleRewardDistributor.java`.
+
+
+- Naming/structure changes
+  - The previous placeholder generator `GPTQuestGenerator` has been renamed to `LocalQuestGenerator` to better reflect its role as an offline provider.
+
+
+### Unit Tests (coverage and how to run)
+
+- Location: `src/test/java`
+  - `game/quest/VisitProgressTest.java` — ordered, out‑of‑order, and duplicate VISIT cases.
+  - `game/quest/KillAndCollectProgressTest.java` — typical/boundary/edge for KILL and COLLECT (including caps).
+  - `game/quest/GeminiQuestGeneratorTest.java` — parses VISIT and KILL from stubbed JSON; falls back on client error (no network).
+  - `game/actions/QuestClaimConsumptionTest.java` — consumes exactly the required collected items on claim.
+- Run all tests with Maven: `mvn test`
+  - Tests are deterministic (no network/time), use small fixtures, and assert behaviours (not internals).
+
+### Troubleshooting
+
+- “No progress shown” on VISIT: ensure you stand on the correct tiles in order — `C` (Cave), `_` (Tundra), `w` (Meadow). The progress view shows a checklist with `[x]/[>]/[ ]` markers.
+- Engine NPEs in tests: maps must belong to a `World` before adding actors; tests use a minimal `World` for this.
+
+### Class Index (implemented for REQ5)
+
+- Core domain (package `game.quest`)
+  - `Quest`, `QuestObjective`, `QuestReward`, `QuestStatus`, `ObjectiveType` — quest data model and lifecycle helpers.
+  - `QuestTracker` — progress book‑keeping; exposes `recordKill/recordCollect/recordVisit` used by actions and Player.
+  - `QuestParticipant`, `QuestParticipantRegistry` — decouple actions from concrete `Player` via registry/adapter.
+  - `QuestService` — abstraction for quest providers.
+  - `LocalQuestGenerator` — offline provider (renamed from GPTQuestGenerator).
+  - `GeminiClient`, `HttpGeminiClient`, `ApiConfig` — API client + configuration (JDK HttpClient; no external deps).
+  - `GeminiQuestGenerator` — AI provider; builds prompt → parses JSON → ensures safe defaults (adds VISIT if missing).
+  - `QuestServiceFactory` — selects Gemini vs local, based on `GEMINI_API_KEY`.
+  - `RewardDistributor` — abstraction; `SimpleRewardDistributor` — fuzzy maps AI names to in‑game items; mixes unknowns.
+
+
+- Actions and actors
+  - `game.actions.QuestAction` — offer/progress/claim; wraps long text, renders VISIT checklist, consumes collected items.
+  - `game.actions.TrackedPickUpAction` — extends engine pickup; records COLLECT quest progress.
+  - `game.actions.AttackAction` (touched) — records KILL progress when a target dies.
+  - `game.actors.Questmaster` — stationary NPC; attaches `QuestAction` using `QuestServiceFactory`.
+  - `game.actors.Player`  — logs VISIT via class name or tile symbol; owns a `QuestTracker` and registers as participant.
+
+### How It Works (end‑to‑end)
+
+- Interaction
+  - Stand adjacent to `Q` and choose “Talk to the Questmaster”. If no active quest exists, one is generated and offered.
+  - The offer shows a wrapped description and objectives. VISIT steps are listed one per line.
+
+
+- Progress
+  - KILL is counted on death; COLLECT on item pickup; VISIT when standing on `C` (Cave), `_` (Tundra), `w` (Meadow) in that order.
+  - Talk again to see a checklist with `[x]` completed, `[>]` current, `[ ]` pending.
+
+
+- Claim
+  - When all objectives complete, claiming will remove exactly the required number of collected items and grant mapped rewards.
+
+
+- Safety & defaults
+  - If an AI payload is malformed or omits objectives, a default VISIT route is inserted so players always see progress.
+  - COLLECT quantities are clamped to 1..5; KILL objectives accept only the named species.
+
+### Configuration & Environment
+
+- Required (for AI quests): `GEMINI_API_KEY` (run configuration → Environment variables)
+- Optional:
+  - `GEMINI_API_VERSION` (default `v1`)
+  - `GEMINI_MODEL` (recommended `gemini-2.5-flash`)
+
+### SOLID
+
+- Dependency Inversion — actions depend on `QuestService` and `RewardDistributor`; Gemini code is behind `GeminiClient`.
+- Interface Segregation — `QuestParticipant` provides only `getQuestTracker` to consumers; no `instanceof` checks.
+- Single Responsibility — generation, tracking, interaction, and reward mapping are cleanly separated classes.
+- Open/Closed — add new providers, rewards, or objective types without modifying existing consumers.
+

@@ -46,15 +46,23 @@ Without a key, the Questmaster still works using a local generator.
 - Dependency Inversion
     - `QuestAction` depends on `QuestService` and `RewardDistributor` interfaces, not on a concrete generator/provider.
     - `GeminiClient` abstracts HTTP calls; `HttpGeminiClient` is a small JDK‑only implementation.
+  
+
 - Interface Segregation / Registry
     - `QuestParticipant` and `QuestParticipantRegistry` decouple actions from `Player` and avoid `instanceof` checks.
+
+
 - Single Responsibility
     - `GeminiQuestGenerator`: prompt building + parsing + fallback
     - `QuestTracker`: progress bookkeeping
     - `SimpleRewardDistributor`: maps AI reward names to concrete game items and mixes unknown rewards with useful items
     - `QuestAction`: orchestrates interaction, claiming, and display
+
+
 - Open/Closed
     - New providers or reward rules can be added without changing consumers, only by wiring via `QuestServiceFactory`.
+
+
 - DRY
     - Shared helpers for parsing and reward mapping; fuzzy mapping avoids large `switch` trees and covers novel reward names.
 
