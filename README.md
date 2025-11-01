@@ -136,3 +136,212 @@ Chimeras can be tamed with Apple or YewBerry. When tamed:
   - Ice: Check for max health increase messages and frostbite status
   - Poison: Watch for "X is poisoned! (Y turns remaining)" messages
 3. **Tame a chimera** with Apple/YewBerry and verify it follows you and assists in combat
+
+# REQ5: The Questmaster NPC - Dynamic Quest System
+
+## Overview
+A stationary NPC called the Questmaster is located in the forest. This NPC uses the Gemini API to generate quest dialogue and offers players random quests with item rewards.
+
+## Core Features
+
+### The Questmaster NPC
+* Fixed location in the forest map
+* Players can interact to:
+  * Accept new quests
+  * Check current quest progress
+  * Turn in completed quests for rewards
+* Uses Gemini API to generate unique dialogue for each quest
+
+### Quest Types
+The Questmaster offers three types of quests:
+
+1. **Hunter's Challenge**
+  * Objective: Kill X number of creatures (wolves, bears, or deer)
+  * Rewards: Combat items (Poisoned Axe, Enhanced Bow, Special Arrows)
+
+2. **Gatherer's Task**
+  * Objective: Collect X quantity of items (berries, hazelnuts, apples)
+  * Rewards: Utility items (Enhanced Bottle, Bedroll)
+
+3. **Explorer's Journey**
+  * Objective: Visit specific locations
+  * Rewards: Travel items (TeleportCube, Special Torch)
+
+### Quest System Mechanics
+* Questmaster randomly selects quest type, targets, and quantities
+* Player can have one active quest at a time
+* Quest progress is tracked automatically as player plays
+* Rewards are given upon quest completion
+
+## Example Scenario
+```
+Player: *Approaches Questmaster*
+Questmaster: [AI-generated greeting]
+"Ah, brave wanderer! I sense you seek purpose in these woods. I offer you three trials:"
+
+1. "Slay 3 wolves to prove your might - a poisoned axe shall be your reward"
+2. "Gather 5 yew berries from the depths of the forest - a magical bedroll awaits"
+3. "Visit the frozen tundra and return with proof - a special torch I shall grant"
+
+[Player selects quest 1]
+
+Questmaster: [AI-generated quest acceptance dialogue]
+"May your blade strike true. Return when the wolves have fallen."
+
+[Quest tracking begins]
+```
+
+## New Classes Required
+
+### Questmaster NPC
+* **Class:** `Questmaster`
+* **Package:** `game.actors`
+* **Description:** The NPC that offers quests to players. Utilizes the Gemini API to generate quest dialogue and manages quest interactions.
+
+### Quest Management
+* **Class:** `Quest`
+* **Package:** `game.quest`
+* **Description:** Represents a quest with properties such as title, description, objectives, and rewards.
+
+* **Class:** `QuestService`
+* **Package:** `game.quest`
+* **Description:** Interface for generating quests. Implemented by classes that interact with the Gemini API.
+
+* **Class:** `GeminiQuestGenerator`
+* **Package:** `game.quest`
+* **Description:** Implements QuestService and uses the Gemini API to generate quests based on player context.
+
+### Quest Objectives
+* **Class:** `QuestObjective`
+* **Package:** `game.quest`
+* **Description:** Represents the specific objectives of a quest (e.g., kill a certain number of creatures, gather items).
+
+* **Class:** `QuestReward`
+* **Package:** `game.quest`
+* **Description:** Represents the rewards given upon quest completion (e.g., items, weapons).
+
+### Quest Tracking
+* **Class:** `QuestTracker`
+* **Package:** `game.quest`
+* **Description:** Manages active quests for the player, tracks progress, and verifies completion.
+
+### Actions
+* **Class:** `QuestAction`
+* **Package:** `game.actions`
+* **Description:** Represents the action of interacting with the Questmaster to start or complete quests.
+
+Full setup guide (API, keys) is documented here:
+- `docs/design/assignment3/REQ5/Questmaster-API.md`
+
+## What’s Implemented Now (Final Design)
+
+- Provider selection and fallback
+  - Uses `GeminiQuestGenerator` when a key is present (`GEMINI_API_KEY`). When not present or on API error, falls back to `LocalQuestGenerator` for fully offline play.
+  - Factory wired at: `src/game/quest/QuestServiceFactory.java`.
+
+
+- Quest generation, structure and safety
+  - Quests have title, description and at least one objective. If an AI response omits objectives, a default VISIT route is injected so progress is always visible and deterministic.
+  - VISIT objectives default to the canonical route `[Cave, Tundra, Meadow]` and require ordered completion.
+  - COLLECT objectives are capped to a maximum of 5 items to keep pacing tight.
+
+
+- Progress tracking hooks
+  - KILL: counted when the player defeats the correct species (see `src/game/actions/AttackAction.java`).
+  - COLLECT: counted on pickup via a tracked pickup action (see `src/game/actions/TrackedPickUpAction.java`).
+  - VISIT: recorded each turn based on current ground – by class name OR tile symbol (`C`=Cave, `_`=Tundra, `w`=Meadow). Logic in `src/game/actors/Player.java`.
+
+
+- Readable, multi‑line progress and offers
+  - Quest offers wrap long descriptions (~78 chars) and list VISIT steps one per line.
+  - Progress view prints a checklist for VISIT: `[x]` done, `[>]` current, `[ ]` pending.
+  - Implemented in `src/game/actions/QuestAction.java` and `src/game/quest/QuestObjective.java`.
+
+
+- Claim flow and inventory effects
+  - When claiming a completed COLLECT quest, the required number of collected items is removed from the player’s inventory (extras remain). See `src/game/actions/QuestAction.java`.
+
+
+- Reward distribution (mixing AI names with in‑game items)
+  - Fuzzy mapping converts common AI names into concrete items:
+    - “poison/yew” → Yewberry‑coated Axe; “frost/snow/ice” → Snow‑coated Axe
+    - “arrow(s)/bow” → Bow; “torch/flame” → Torch; “teleport/cube/portal” → Teleport Cube
+    - “bottle/flask/canteen” → Bottle; “bed/bedroll/sleep” → Bedroll
+  - Unknown rewards still grant a useful random item (e.g., Bow, Torch, Teleport Cube, infused Axe, Bottle).
+  - Implemented in `src/game/quest/SimpleRewardDistributor.java`.
+
+
+- Naming/structure changes
+  - The previous placeholder generator `GPTQuestGenerator` has been renamed to `LocalQuestGenerator` to better reflect its role as an offline provider.
+
+
+### Unit Tests (coverage and how to run)
+
+- Location: `src/test/java`
+  - `game/quest/VisitProgressTest.java` — ordered, out‑of‑order, and duplicate VISIT cases.
+  - `game/quest/KillAndCollectProgressTest.java` — typical/boundary/edge for KILL and COLLECT (including caps).
+  - `game/quest/GeminiQuestGeneratorTest.java` — parses VISIT and KILL from stubbed JSON; falls back on client error (no network).
+  - `game/actions/QuestClaimConsumptionTest.java` — consumes exactly the required collected items on claim.
+- Run all tests with Maven: `mvn test`
+  - Tests are deterministic (no network/time), use small fixtures, and assert behaviours (not internals).
+
+### Troubleshooting
+
+- “No progress shown” on VISIT: ensure you stand on the correct tiles in order — `C` (Cave), `_` (Tundra), `w` (Meadow). The progress view shows a checklist with `[x]/[>]/[ ]` markers.
+- Engine NPEs in tests: maps must belong to a `World` before adding actors; tests use a minimal `World` for this.
+
+### Class Index (implemented for REQ5)
+
+- Core domain (package `game.quest`)
+  - `Quest`, `QuestObjective`, `QuestReward`, `QuestStatus`, `ObjectiveType` — quest data model and lifecycle helpers.
+  - `QuestTracker` — progress book‑keeping; exposes `recordKill/recordCollect/recordVisit` used by actions and Player.
+  - `QuestParticipant`, `QuestParticipantRegistry` — decouple actions from concrete `Player` via registry/adapter.
+  - `QuestService` — abstraction for quest providers.
+  - `LocalQuestGenerator` — offline provider (renamed from GPTQuestGenerator).
+  - `GeminiClient`, `HttpGeminiClient`, `ApiConfig` — API client + configuration (JDK HttpClient; no external deps).
+  - `GeminiQuestGenerator` — AI provider; builds prompt → parses JSON → ensures safe defaults (adds VISIT if missing).
+  - `QuestServiceFactory` — selects Gemini vs local, based on `GEMINI_API_KEY`.
+  - `RewardDistributor` — abstraction; `SimpleRewardDistributor` — fuzzy maps AI names to in‑game items; mixes unknowns.
+
+
+- Actions and actors
+  - `game.actions.QuestAction` — offer/progress/claim; wraps long text, renders VISIT checklist, consumes collected items.
+  - `game.actions.TrackedPickUpAction` — extends engine pickup; records COLLECT quest progress.
+  - `game.actions.AttackAction` (touched) — records KILL progress when a target dies.
+  - `game.actors.Questmaster` — stationary NPC; attaches `QuestAction` using `QuestServiceFactory`.
+  - `game.actors.Player`  — logs VISIT via class name or tile symbol; owns a `QuestTracker` and registers as participant.
+
+### How It Works (end‑to‑end)
+
+- Interaction
+  - Stand adjacent to `Q` and choose “Talk to the Questmaster”. If no active quest exists, one is generated and offered.
+  - The offer shows a wrapped description and objectives. VISIT steps are listed one per line.
+
+
+- Progress
+  - KILL is counted on death; COLLECT on item pickup; VISIT when standing on `C` (Cave), `_` (Tundra), `w` (Meadow) in that order.
+  - Talk again to see a checklist with `[x]` completed, `[>]` current, `[ ]` pending.
+
+
+- Claim
+  - When all objectives complete, claiming will remove exactly the required number of collected items and grant mapped rewards.
+
+
+- Safety & defaults
+  - If an AI payload is malformed or omits objectives, a default VISIT route is inserted so players always see progress.
+  - COLLECT quantities are clamped to 1..5; KILL objectives accept only the named species.
+
+### Configuration & Environment
+
+- Required (for AI quests): `GEMINI_API_KEY` (run configuration → Environment variables)
+- Optional:
+  - `GEMINI_API_VERSION` (default `v1`)
+  - `GEMINI_MODEL` (recommended `gemini-2.5-flash`)
+
+### SOLID
+
+- Dependency Inversion — actions depend on `QuestService` and `RewardDistributor`; Gemini code is behind `GeminiClient`.
+- Interface Segregation — `QuestParticipant` provides only `getQuestTracker` to consumers; no `instanceof` checks.
+- Single Responsibility — generation, tracking, interaction, and reward mapping are cleanly separated classes.
+- Open/Closed — add new providers, rewards, or objective types without modifying existing consumers.
+

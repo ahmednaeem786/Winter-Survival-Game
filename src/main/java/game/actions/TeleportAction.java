@@ -50,7 +50,6 @@ public class TeleportAction extends Action {
                     " - location is occupied!";
         }
 
-        // Rest of your teleport logic here...
         map.moveActor(actor, targetLocation);
         return actor.toString() + " teleports to " + destination.getDescription();
     }

@@ -13,6 +13,11 @@ import game.items.Apple;
 import game.items.Bedroll;
 import game.items.Bottle;
 import game.weapons.BareFist;
+import game.quest.core.QuestTracker;
+import game.quest.core.QuestParticipant;
+import game.quest.core.QuestParticipantRegistry;
+import edu.monash.fit2099.engine.positions.Location;
+import edu.monash.fit2099.engine.positions.Ground;
 
 /**
  * Class representing the Player (Explorer).
@@ -20,9 +25,10 @@ import game.weapons.BareFist;
  * @author Muhamad Shafy Dimas Rafarrel
  * @version 3.8
  */
-public class Player extends GameActor implements HydrationCapability {
+public class Player extends GameActor implements HydrationCapability, QuestParticipant {
     private BaseActorAttribute hydration;
     private BaseActorAttribute warmth;
+    private final QuestTracker questTracker = new QuestTracker();
 
     /**
      * Constructor for creating a new Player character.
@@ -47,6 +53,8 @@ public class Player extends GameActor implements HydrationCapability {
         this.addItemToInventory(new Bedroll());
         this.addItemToInventory(new Bottle());
         this.addItemToInventory(new Apple());
+
+        QuestParticipantRegistry.register(this, this);
     }
 
     /**
@@ -64,6 +72,24 @@ public class Player extends GameActor implements HydrationCapability {
     @Override
     public Action playTurn(ActionList actions, Action lastAction, GameMap map, Display display) {
         tickStatusEffects(map);
+        // Quest VISIT tracking: record location-based visits in order
+        try {
+            Location here = map.locationOf(this);
+            Ground ground = here.getGround();
+            String key = null;
+            String cls = ground.getClass().getSimpleName();
+            if ("Cave".equals(cls) || "Tundra".equals(cls) || "Meadow".equals(cls)) {
+                key = cls;
+            } else {
+                char ch = ground.getDisplayChar();
+                if (ch == 'C') key = "Cave";
+                else if (ch == '_') key = "Tundra";
+                else if (ch == 'w') key = "Meadow";
+            }
+            if (key != null) {
+                questTracker.recordVisit(key);
+            }
+        } catch (Exception ignored) { }
         // Check if player is unconscious (hydration or warmth at 0)
         if (hydration.get() <= 0 || warmth.get() <= 0) {
             display.println(name + " becomes unconscious! Game Over!");
@@ -98,5 +124,12 @@ public class Player extends GameActor implements HydrationCapability {
      */
     public void increaseHydration(int amount) {
         this.hydration.increase(amount);
+    }
+
+    /**
+     * Access the player's quest tracker.
+     */
+    public QuestTracker getQuestTracker() {
+        return questTracker;
     }
 }

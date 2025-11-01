@@ -9,6 +9,8 @@ import edu.monash.fit2099.engine.positions.GameMap;
 import game.actions.CoatAction;
 import game.coating.Coatable;
 import game.coating.CoatingType;
+import edu.monash.fit2099.engine.items.PickUpAction;
+import game.actions.TrackedPickUpAction;
 
 /**
  * Class representing a Yew Berry item.
@@ -24,6 +26,11 @@ public class YewBerry extends ConsumableItem {
      */
     public YewBerry() {
         super("Yew Berry", 'x', true);
+    }
+
+    @Override
+    public PickUpAction getPickUpAction(Actor actor) {
+        return new TrackedPickUpAction(this);
     }
 
     /**
@@ -59,3 +66,4 @@ public class YewBerry extends ConsumableItem {
         return actions;
     }
 }
+
