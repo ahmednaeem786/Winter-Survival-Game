@@ -14,6 +14,14 @@ import game.terrain.Cave;
 import game.terrain.Meadow;
 import game.terrain.Tundra;
 import game.terrain.Snow;
+import game.terrain.Swamp;
+import game.actors.Crocodile;
+import game.spawning.AnimalRegistry;
+import game.spawning.PostSpawnEffectRegistry;
+import game.spawning.DeerAppleDropEffect;
+import game.spawning.BearYewberryScatterEffect;
+import game.spawning.WolfTreeGrowthEffect;
+import game.spawning.CrocodilePoisonPulseEffect;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,17 +50,31 @@ public class Earth extends World {
         
         // Forest map spawn profile
         Map<Class<?>, List<Class<? extends Actor>>> forestProfile = new HashMap<>();
-        forestProfile.put(game.terrain.Tundra.class, Arrays.asList(Bear.class));
-        forestProfile.put(game.terrain.Cave.class, Arrays.asList(Bear.class, Wolf.class, Deer.class));
-        forestProfile.put(game.terrain.Meadow.class, Arrays.asList(Deer.class));
+        forestProfile.put(Tundra.class, Arrays.asList(Bear.class));
+        forestProfile.put(Cave.class, Arrays.asList(Bear.class, Wolf.class, Deer.class));
+        forestProfile.put(Meadow.class, Arrays.asList(Deer.class, Crocodile.class));
+        forestProfile.put(Swamp.class, Arrays.asList(Crocodile.class, Deer.class));
         SPAWN_PROFILES.put("Forest", forestProfile);
         
         // Plains map spawn profile
         Map<Class<?>, List<Class<? extends Actor>>> plainsProfile = new HashMap<>();
-        plainsProfile.put(game.terrain.Tundra.class, Arrays.asList(Wolf.class));
-        plainsProfile.put(game.terrain.Cave.class, Arrays.asList(Bear.class, Wolf.class));
-        plainsProfile.put(game.terrain.Meadow.class, Arrays.asList(Deer.class, Bear.class));
+        plainsProfile.put(Tundra.class, Arrays.asList(Wolf.class, Crocodile.class));
+        plainsProfile.put(Cave.class, Arrays.asList(Bear.class, Wolf.class));
+        plainsProfile.put(Meadow.class, Arrays.asList(Deer.class, Bear.class));
+        plainsProfile.put(Swamp.class, Arrays.asList(Crocodile.class));
         SPAWN_PROFILES.put("Plains", plainsProfile);
+
+        // === Register animal factories for polymorphic, parameterized animal creation (REQ2) ===
+        AnimalRegistry.register(Bear.class, Bear::new);
+        AnimalRegistry.register(Wolf.class, Wolf::new);
+        AnimalRegistry.register(Deer.class, Deer::new);
+        AnimalRegistry.register(Crocodile.class, Crocodile::new);
+        // === Register post-spawn effects ===
+        java.util.Random spawnRNG = new java.util.Random(42);
+        PostSpawnEffectRegistry.register(Deer.class, new DeerAppleDropEffect(spawnRNG));
+        PostSpawnEffectRegistry.register(Bear.class, new BearYewberryScatterEffect(spawnRNG));
+        PostSpawnEffectRegistry.register(Wolf.class, new WolfTreeGrowthEffect(spawnRNG));
+        PostSpawnEffectRegistry.register(Crocodile.class, new CrocodilePoisonPulseEffect());
     }
 
     /**
@@ -458,6 +480,8 @@ public class Earth extends World {
             selectedTile.setGround(new Meadow());
         } else if (terrainClass == Tundra.class) {
             selectedTile.setGround(new Tundra());
+        } else if (terrainClass == Swamp.class) {
+            selectedTile.setGround(new Swamp());
         }
     }
 
