@@ -37,7 +37,6 @@ public class Meadow extends Ground {
             if (globalTurn % SPAWN_CADENCE != 0) {
                 return false;
             }
-            
             // 50% chance gate
             return random.nextDouble() < SPAWN_CHANCE;
         }

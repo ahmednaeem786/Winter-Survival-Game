@@ -18,7 +18,7 @@ import java.util.Random;
  * @author Reynard Andyti Putra Kaban
  */
 public class Tundra extends Ground {
-    private static final double SPAWN_CHANCE = 0.05; // 5% chance
+    private static final double SPAWN_CHANCE = 0.8; // 5% chance
     private static final int HEALTH_BOOST = 10;
     private Snow.SpawnRule spawnRule;
     private static Random random = new Random();
@@ -56,15 +56,12 @@ public class Tundra extends Ground {
                     ActorAttributeOperation.INCREASE,
                     HEALTH_BOOST
                 );
-                
-                // Also heal the animal to full HP with the new maximum
                 spawned.modifyAttribute(
                     BaseAttributes.HEALTH,
                     ActorAttributeOperation.INCREASE,
                     HEALTH_BOOST
                 );
             }
-            
             // Apply cold resistance capability to all spawned actors
             // All actors spawned from Tundra get this ability
             spawned.enableAbility(Abilities.COLD_RESISTANCE);

@@ -40,7 +40,9 @@ public class Cave extends Ground {
 
         @Override
         public void applySpawnEffects(Actor spawned, GameMap map) {
-            // Cave-spawned animals don't get special effects
+            // Cave-specific spawn effects (if any) go here
+            // Universal post-spawn effects (deer->apple, bear->berries, wolf->tree, croc->poison)
+            // are now handled by Snow.SpawnHelper after actor is added to map
         }
     }
 
