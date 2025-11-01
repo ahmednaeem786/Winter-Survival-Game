@@ -90,7 +90,12 @@ public class Player extends GameActor implements HydrationCapability, QuestParti
                 questTracker.recordVisit(key);
             }
         } catch (Exception ignored) { }
-        // Check if player is unconscious (hydration or warmth at 0)
+        // Check if player is unconscious (health, hydration, or warmth at 0)
+        if (!this.isConscious() || this.getAttribute(BaseAttributes.HEALTH) <= 0) {
+            display.println(name + " becomes unconscious! Game Over!");
+            display.println("GAME OVER - Survival failed!");
+            System.exit(0);
+        }
         if (hydration.get() <= 0 || warmth.get() <= 0) {
             display.println(name + " becomes unconscious! Game Over!");
             display.println("GAME OVER - Survival failed!");

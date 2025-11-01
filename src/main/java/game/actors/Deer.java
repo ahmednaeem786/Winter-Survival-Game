@@ -313,31 +313,4 @@ public class Deer extends TameableAnimal implements ItemCollector, Follower {
     public static Deer createDefault() {
         return new Deer();
     }
-
-    /**
-     * Applies cold resistance effects to a Deer.
-     * Used when spawning from tundra terrain.
-     *
-     * @param deer the Deer to apply cold resistance to
-     */
-    public static void applyColdResistant(Deer deer) {
-        // Apply cold resistance capability/status
-        // For now, this is a placeholder - in a real implementation,
-        // this would add a cold resistance capability or status
-        // TODO: Implement cold resistance when capability system is available
-    }
-
-    /**
-     * Applies meadow foraging effects to a Deer.
-     * Used when spawning from meadow terrain.
-     *
-     * @param deer the Deer to apply foraging abilities to
-     */
-    public static void applyMeadowForaging(Deer deer) {
-        // Apply ground consumption capability
-        // This would allow the deer to consume items on the ground
-        // For now, this is a placeholder - in a real implementation,
-        // this would add a ground consumption capability
-        // TODO: Implement ground consumption when capability system is available
-    }
 }

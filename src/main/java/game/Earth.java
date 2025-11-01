@@ -137,9 +137,13 @@ public class Earth extends World {
      * @param playersMap the map the player is currently on (used to filter display output)
      */
     private void processActorTurnWithMapFilter(Actor actor, GameMap playersMap) {
+        // If the actor is no longer in the system (e.g., died during item consumption), skip their turn
+        if (!actorLocations.contains(actor)) {
+            return;
+        }
+        
         // Get actor's location and map
-        Location here;
-        here = actorLocations.locationOf(actor);
+        Location here = actorLocations.locationOf(actor);
         GameMap map = here.map();
 
         // Prepare all allowable actions for this actor

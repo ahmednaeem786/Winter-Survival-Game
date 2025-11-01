@@ -18,7 +18,7 @@ import java.util.Random;
  * @author Reynard Andyti Putra Kaban
  */
 public class Tundra extends Ground {
-    private static final double SPAWN_CHANCE = 0.8; // 5% chance
+    private static final double SPAWN_CHANCE = 0.05; // 5% chance
     private static final int HEALTH_BOOST = 10;
     private Snow.SpawnRule spawnRule;
     private static Random random = new Random();

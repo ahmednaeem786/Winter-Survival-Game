@@ -77,6 +77,10 @@ public class Crocodile extends TameableAnimal {
     @Override
     protected Action wildBehavior(ActionList actions, Action lastAction, GameMap map, Display display) {
         Location currentLocation = map.locationOf(this);
+        // If the crocodile is no longer on the map (e.g., died from consuming poison), return do nothing
+        if (currentLocation == null || !map.contains(this)) {
+            return new DoNothingAction();
+        }
         for (Exit exit : currentLocation.getExits()) {
             Location adjacentLocation = exit.getDestination();
             if (adjacentLocation.containsAnActor()) {
@@ -104,9 +108,10 @@ public class Crocodile extends TameableAnimal {
         if (tamer == null) {
             return new DoNothingAction();
         }
-        Location tamerLocation = map.locationOf(tamer);
         Location myLocation = map.locationOf(this);
-        if (tamerLocation == null || myLocation == null) {
+        Location tamerLocation = map.locationOf(tamer);
+        // If the crocodile or tamer is no longer on the map, return do nothing
+        if (myLocation == null || tamerLocation == null || !map.contains(this) || !map.contains(tamer)) {
             return new DoNothingAction();
         }
         if (isAdjacentTo(myLocation, tamerLocation)) {
@@ -123,6 +128,10 @@ public class Crocodile extends TameableAnimal {
      */
     private Action wanderRandomly(GameMap map) {
         Location currentLocation = map.locationOf(this);
+        // If the crocodile is no longer on the map (e.g., died from consuming poison), return do nothing
+        if (currentLocation == null || !map.contains(this)) {
+            return new DoNothingAction();
+        }
         List<Exit> exits = new ArrayList<>(currentLocation.getExits());
         if (!exits.isEmpty()) {
             Collections.shuffle(exits, random);

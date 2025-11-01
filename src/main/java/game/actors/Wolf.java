@@ -269,31 +269,4 @@ public class Wolf extends TameableAnimal implements Follower, CombatAssistant  {
     public static Wolf createDefault() {
         return new Wolf();
     }
-
-    /**
-     * Applies cold resistance effects to a Wolf.
-     * Used when spawning from tundra terrain.
-     *
-     * @param wolf the Wolf to apply cold resistance to
-     */
-    public static void applyColdResistant(Wolf wolf) {
-        // Apply cold resistance capability/status
-        // For now, this is a placeholder - in a real implementation,
-        // this would add a cold resistance capability or status
-        // TODO: Implement cold resistance when capability system is available
-    }
-
-    /**
-     * Applies meadow foraging effects to a Wolf.
-     * Used when spawning from meadow terrain.
-     *
-     * @param wolf the Wolf to apply foraging abilities to
-     */
-    public static void applyMeadowForaging(Wolf wolf) {
-        // Apply ground consumption capability
-        // This would allow the wolf to consume items on the ground
-        // For now, this is a placeholder - in a real implementation,
-        // this would add a ground consumption capability
-        // TODO: Implement ground consumption when capability system is available
-    }
 }

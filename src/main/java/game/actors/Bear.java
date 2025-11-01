@@ -71,6 +71,10 @@ public class Bear extends TameableAnimal implements Follower, CombatAssistant {
     @Override
     protected Action wildBehavior(ActionList actions, Action lastAction, GameMap map, Display display) {
         Location currentLocation = map.locationOf(this);
+        // If the bear is no longer on the map (e.g., died from consuming poison), return do nothing
+        if (currentLocation == null || !map.contains(this)) {
+            return new DoNothingAction();
+        }
 
         // Attack any adjacent actors
         for (Exit exit : currentLocation.getExits()) {
@@ -99,6 +103,12 @@ public class Bear extends TameableAnimal implements Follower, CombatAssistant {
      */
     @Override
     protected Action tamedBehavior(ActionList actions, Action lastAction, GameMap map, Display display) {
+        Location myLoc = map.locationOf(this);
+        // If the bear is no longer on the map (e.g., died from consuming poison), return do nothing
+        if (myLoc == null || !map.contains(this)) {
+            return new DoNothingAction();
+        }
+        
         // Priority 1: Combat assistance
         Action combatAction = findCombatTarget(map);
         if (combatAction != null) {
@@ -122,8 +132,12 @@ public class Bear extends TameableAnimal implements Follower, CombatAssistant {
             return new DoNothingAction();
         }
 
-        Location tamerLocation = map.locationOf(tamer);
         Location myLocation = map.locationOf(this);
+        Location tamerLocation = map.locationOf(tamer);
+        // If the bear or tamer is no longer on the map, return do nothing
+        if (myLocation == null || tamerLocation == null || !map.contains(this) || !map.contains(tamer)) {
+            return new DoNothingAction();
+        }
 
         if (isAdjacentTo(myLocation, tamerLocation)) {
             return new DoNothingAction();
@@ -154,7 +168,12 @@ public class Bear extends TameableAnimal implements Follower, CombatAssistant {
             return null;
         }
 
+        Location myLocation = map.locationOf(this);
         Location tamerLocation = map.locationOf(tamer);
+        // If the bear or tamer is no longer on the map, return null
+        if (myLocation == null || tamerLocation == null || !map.contains(this) || !map.contains(tamer)) {
+            return null;
+        }
 
         // Check if tamer is being threatened
         for (Exit exit : tamerLocation.getExits()) {
@@ -187,12 +206,10 @@ public class Bear extends TameableAnimal implements Follower, CombatAssistant {
      */
     private Action wanderRandomly(GameMap map) {
         Location currentLocation = map.locationOf(this);
-        
         // If the bear is no longer on the map (e.g., died from consuming poison), return do nothing
-        if (currentLocation == null) {
+        if (currentLocation == null || !map.contains(this)) {
             return new DoNothingAction();
         }
-        
         List<Exit> exits = new ArrayList<>(currentLocation.getExits());
 
         if (!exits.isEmpty()) {
@@ -217,6 +234,10 @@ public class Bear extends TameableAnimal implements Follower, CombatAssistant {
      */
     private Action moveTowards(Location target, GameMap map) {
         Location myLocation = map.locationOf(this);
+        // If the bear is no longer on the map (e.g., died from consuming poison), return do nothing
+        if (myLocation == null || !map.contains(this)) {
+            return new DoNothingAction();
+        }
         List<Exit> exits = new ArrayList<>(myLocation.getExits());
 
         Exit bestExit = null;
@@ -261,8 +282,12 @@ public class Bear extends TameableAnimal implements Follower, CombatAssistant {
      * @return an attack action if adjacent, otherwise a movement action
      */
     private Action moveTowardsOrAttack(Actor target, GameMap map) {
-        Location targetLocation = map.locationOf(target);
         Location myLocation = map.locationOf(this);
+        Location targetLocation = map.locationOf(target);
+        // If the bear or target is no longer on the map, return do nothing
+        if (myLocation == null || targetLocation == null || !map.contains(this) || !map.contains(target)) {
+            return new DoNothingAction();
+        }
 
         // Check if adjacent - if so, attack
         for (Exit exit : myLocation.getExits()) {
@@ -296,32 +321,5 @@ public class Bear extends TameableAnimal implements Follower, CombatAssistant {
      */
     public static Bear createDefault() {
         return new Bear();
-    }
-
-    /**
-     * Applies cold resistance effects to a Bear.
-     * Used when spawning from tundra terrain.
-     *
-     * @param bear the Bear to apply cold resistance to
-     */
-    public static void applyColdResistant(Bear bear) {
-        // Apply cold resistance capability/status
-        // For now, this is a placeholder - in a real implementation,
-        // this would add a cold resistance capability or status
-        // TODO: Implement cold resistance when capability system is available
-    }
-
-    /**
-     * Applies meadow foraging effects to a Bear.
-     * Used when spawning from meadow terrain.
-     *
-     * @param bear the Bear to apply foraging abilities to
-     */
-    public static void applyMeadowForaging(Bear bear) {
-        // Apply ground consumption capability
-        // This would allow the bear to consume items on the ground
-        // For now, this is a placeholder - in a real implementation,
-        // this would add a ground consumption capability
-        // TODO: Implement ground consumption when capability system is available
     }
 }
