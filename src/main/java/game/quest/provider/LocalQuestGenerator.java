@@ -8,18 +8,31 @@ import game.quest.model.QuestReward;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+
 /**
- * Placeholder AI-backed quest generator.
- * For now, produces deterministic sample quests across the three types.
+ * Local quest generator producing deterministic sample quests.
+ * Randomly selects from predefined quest templates covering all objective types.
+ *
+ * <p>This implementation serves as a fallback when AI generation is unavailable
+ * and as a reference for quest structure.
  */
 public class LocalQuestGenerator implements QuestService {
     private final Random rng;
+
+    /** Creates a local quest generator with default random seed. */
     public LocalQuestGenerator() {
         this(new Random());
     }
+
+    /**
+     * Creates a local quest generator with specified random number generator.
+     *
+     * @param rng the random number generator for quest selection
+     */
     public LocalQuestGenerator(Random rng) {
         this.rng = rng;
     }
+
     @Override
     public Quest generateQuest() {
         int pick = rng.nextInt(3);
@@ -29,6 +42,12 @@ public class LocalQuestGenerator implements QuestService {
             default: return explorersJourney();
         }
     }
+
+    /**
+     * Creates a kill-type quest targeting creatures.
+     *
+     * @return a hunter's challenge quest
+     */
     private Quest huntersChallenge() {
         List<String> creatures = Arrays.asList("Wolf", "Bear", "Deer");
         String target = creatures.get(rng.nextInt(creatures.size()));
@@ -41,6 +60,12 @@ public class LocalQuestGenerator implements QuestService {
         q.addReward(new QuestReward("Special Arrows", "Piercing tips crafted by the Questmaster."));
         return q;
     }
+
+    /**
+     * Creates a collection-type quest for gathering items.
+     *
+     * @return a gatherer's task quest
+     */
     private Quest gatherersTask() {
         List<String> items = Arrays.asList("YewBerry", "Hazelnut", "Apple");
         String item = items.get(rng.nextInt(items.size()));
@@ -52,6 +77,12 @@ public class LocalQuestGenerator implements QuestService {
         q.addReward(new QuestReward("Magic Bedroll", "Warms even in the coldest tundra."));
         return q;
     }
+
+    /**
+     * Creates a visit-type quest with sequential locations.
+     *
+     * @return an explorer's journey quest
+     */
     private Quest explorersJourney() {
         List<String> route = Arrays.asList("Cave", "Tundra", "Meadow");
         Quest q = new Quest("Explorer's Journey",

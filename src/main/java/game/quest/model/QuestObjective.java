@@ -6,8 +6,11 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Represents a single objective within a quest, such as killing a type of creature,
- * collecting items, or visiting a set of locations.
+ * Represents a single objective within a quest.
+ * Supports kill, collection, and sequential visit objectives.
+ *
+ * <p>Each objective tracks its own progress and determines when it's complete
+ * based on its type and requirements.
  */
 public class QuestObjective {
     private final ObjectiveType type;
@@ -18,10 +21,25 @@ public class QuestObjective {
 
     private int visitIndex; // current index in orderedLocations for VISIT
 
+    /**
+     * Creates a quest objective without ordered locations.
+     *
+     * @param type the objective type
+     * @param target the target (creature name, item name, or location key)
+     * @param requiredAmount the required count or number of locations
+     */
     public QuestObjective(ObjectiveType type, String target, int requiredAmount) {
         this(type, target, requiredAmount, new ArrayList<>());
     }
 
+    /**
+     * Creates a quest objective with ordered locations for VISIT type.
+     *
+     * @param type the objective type
+     * @param target the target description
+     * @param requiredAmount the required count
+     * @param locationsInOrder the ordered list of locations to visit
+     */
     public QuestObjective(ObjectiveType type, String target, int requiredAmount, List<String> locationsInOrder) {
         this.type = Objects.requireNonNull(type);
         this.target = Objects.requireNonNull(target);
@@ -35,8 +53,19 @@ public class QuestObjective {
     public String getTarget() { return target; }
     public int getRequiredAmount() { return requiredAmount; }
     public int getProgress() { return progress; }
+
+    /**
+     * Returns the ordered list of locations for VISIT objectives.
+     *
+     * @return unmodifiable list of location identifiers
+     */
     public List<String> getOrderedLocations() { return Collections.unmodifiableList(orderedLocations); }
 
+    /**
+     * Checks if this objective is complete.
+     *
+     * @return true if the objective requirements are met
+     */
     public boolean isComplete() {
         if (type == ObjectiveType.VISIT) {
             return visitIndex >= orderedLocations.size() && !orderedLocations.isEmpty();
@@ -44,18 +73,34 @@ public class QuestObjective {
         return progress >= requiredAmount;
     }
 
+    /**
+     * Records a creature kill and updates progress if applicable.
+     *
+     * @param creatureName the name of the killed creature
+     */
     public void recordKill(String creatureName) {
         if (type == ObjectiveType.KILL && target.equalsIgnoreCase(creatureName) && progress < requiredAmount) {
             progress += 1;
         }
     }
 
+    /**
+     * Records item collection and updates progress if applicable.
+     *
+     * @param itemName the name of the collected item
+     * @param amount the quantity collected
+     */
     public void recordCollect(String itemName, int amount) {
         if (type == ObjectiveType.COLLECT && target.equalsIgnoreCase(itemName) && progress < requiredAmount) {
             progress = Math.min(requiredAmount, progress + Math.max(0, amount));
         }
     }
 
+    /**
+     * Records a location visit and updates progress if it matches the next expected location.
+     *
+     * @param locationKey the identifier of the visited location
+     */
     public void recordVisit(String locationKey) {
         if (type != ObjectiveType.VISIT || orderedLocations.isEmpty()) return;
         if (visitIndex < orderedLocations.size() && orderedLocations.get(visitIndex).equalsIgnoreCase(locationKey)) {
@@ -63,6 +108,11 @@ public class QuestObjective {
         }
     }
 
+    /**
+     * Returns a human-readable progress string for this objective.
+     *
+     * @return formatted progress text showing current status
+     */
     public String progressText() {
         switch (type) {
             case KILL:

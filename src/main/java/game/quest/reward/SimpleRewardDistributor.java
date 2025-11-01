@@ -12,12 +12,27 @@ import java.util.Random;
 
 /**
  * Reward distributor that maps abstract rewards to concrete in-game items.
- * - Performs case-insensitive fuzzy matching for common reward names.
- * - For unknown rewards, grants a sensible random item so players always receive something.
+ * Performs case-insensitive fuzzy matching for common reward names.
+ *
+ * <p>For unknown AI-generated rewards, grants a sensible random item to ensure
+ * players always receive something valuable. This bridges the gap between
+ * creative AI output and fixed game item implementations.
  */
 public class SimpleRewardDistributor implements RewardDistributor {
     private static final Random RNG = new Random();
 
+    /**
+     * Distributes all rewards for a quest to the specified participant.
+     * Maps abstract reward names to concrete game items using fuzzy matching.
+     *
+     * <p>For unknown AI-generated rewards, grants a random sensible item to ensure
+     * players always receive something valuable.
+     *
+     * @param quest the completed quest containing rewards to distribute
+     * @param participant the quest participant receiving the rewards
+     * @param asActor the actor representation for inventory operations
+     * @return a human-readable summary of all distributed rewards
+     */
     @Override
     public String distribute(Quest quest, QuestParticipant participant, Actor asActor) {
         StringBuilder sb = new StringBuilder();
@@ -79,11 +94,26 @@ public class SimpleRewardDistributor implements RewardDistributor {
         return sb.toString();
     }
 
+    /**
+     * Checks if a string contains any of the specified substrings.
+     *
+     * @param haystack the string to search in
+     * @param needles the substrings to search for
+     * @return true if any needle is found in haystack
+     */
     private static boolean containsAny(String haystack, String... needles) {
         for (String n : needles) if (haystack.contains(n)) return true;
         return false;
     }
 
+    /**
+     * Maps an unknown reward name to a random concrete item.
+     * Ensures players always receive something valuable for AI-generated rewards.
+     *
+     * @param asActor the actor receiving the item
+     * @param originalName the original reward name from the quest
+     * @return a message describing the granted item
+     */
     private static String mapUnknown(Actor asActor, String originalName) {
         int pick = RNG.nextInt(6);
         switch (pick) {

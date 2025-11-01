@@ -7,8 +7,11 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Simple HTTP client using JDK HttpClient to call Gemini's generateContent endpoint.
- * Avoids external dependencies as per assignment constraints.
+ * HTTP client implementation for calling Gemini's generateContent endpoint.
+ * Uses JDK's built-in HttpClient to avoid external dependencies.
+ *
+ * <p>This implementation performs minimal JSON parsing to extract the generated
+ * text from the API response without requiring a JSON library.
  */
 public class HttpGeminiClient implements GeminiClient {
 
@@ -35,10 +38,23 @@ public class HttpGeminiClient implements GeminiClient {
         return (text != null && !text.isBlank()) ? text : respBody;
     }
 
+    /**
+     * URL-encodes a string using UTF-8 encoding.
+     *
+     * @param s the string to encode
+     * @return the URL-encoded string
+     */
     private static String encode(String s) {
         return java.net.URLEncoder.encode(s, StandardCharsets.UTF_8);
     }
 
+    /**
+     * Escapes a string for use in JSON format.
+     * Handles special characters like quotes, backslashes, and control characters.
+     *
+     * @param s the string to escape
+     * @return the JSON-escaped string wrapped in quotes
+     */
     private static String jsonString(String s) {
         if (s == null) return "\"\"";
         StringBuilder out = new StringBuilder("\"");
@@ -63,8 +79,14 @@ public class HttpGeminiClient implements GeminiClient {
     }
 
     /**
-     * Extremely small parser to extract candidates[0].content.parts[0].text
-     * This avoids external JSON libs. Adequate for assignment demo purposes.
+     * Extracts the text content from Gemini API JSON response.
+     * Performs minimal parsing to find candidates[0].content.parts[0].text.
+     *
+     * <p>This is a simplified parser adequate for demo purposes, avoiding
+     * the need for external JSON libraries.
+     *
+     * @param response the raw JSON response from the API
+     * @return the extracted text, or null if not found
      */
     static String extractFirstText(String response) {
         if (response == null) return null;
