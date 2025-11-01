@@ -77,14 +77,20 @@ public class YewBerryTree extends Ground {
     public void tick(Location location) {
         super.tick(location);
         if (!canProduce) return;
-        if (proximityDropEnabled && actorNearby(location)) {
-            dropItem(location, new YewBerry());
-        }
-        turnCounter++;
-        // Only use timer-based drops if proximity drop is disabled
-        if (!proximityDropEnabled && turnCounter >= PlantConstants.SAPLING_TO_TREE_TURNS) {
-            turnCounter = 0;
-            dropItem(location, new YewBerry());
+        
+        if (proximityDropEnabled) {
+            // Proximity mode: drop when an actor is nearby (replaces 5-turn timer)
+            // This is the unique behavior for wolf-spawned trees
+            if (actorNearby(location)) {
+                dropItem(location, new YewBerry());
+            }
+        } else {
+            // Standard mode: drop every 5 turns (see REQ1)
+            turnCounter++;
+            if (turnCounter >= PlantConstants.SAPLING_TO_TREE_TURNS) {
+                turnCounter = 0;
+                dropItem(location, new YewBerry());
+            }
         }
     }
     /**
