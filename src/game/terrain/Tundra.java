@@ -7,6 +7,10 @@ import edu.monash.fit2099.engine.positions.Location;
 import game.actors.Bear;
 import game.actors.Wolf;
 import game.actors.Deer;
+import game.Earth;
+import game.abilities.Abilities;
+import edu.monash.fit2099.engine.actors.attributes.BaseAttributes;
+import edu.monash.fit2099.engine.actors.attributes.ActorAttributeOperation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +21,7 @@ import java.util.Random;
  * @author Reynard Andyti Putra Kaban
  */
 public class Tundra extends Ground {
-    private static final double SPAWN_CHANCE = 0.05; // 5% chance
+    private static final double SPAWN_CHANCE = 0.8; // 5% chance
     private static final int HEALTH_BOOST = 10;
     private game.terrain.Snow.SpawnRule spawnRule;
     private static Random random = new Random();
@@ -40,33 +44,27 @@ public class Tundra extends Ground {
         @Override
         public List<Class<? extends Actor>> allowedSpecies(GameMap map) {
             // Use the map-specific spawn profile from Earth class
-            return game.Earth.getAllowedSpecies(map.toString(), Tundra.class);
+            return Earth.getAllowedSpecies(map.toString(), Tundra.class);
         }
 
         @Override
         public void applySpawnEffects(Actor spawned, GameMap map) {
             // Apply +10 max HP boost
-            if (spawned.hasStatistic(edu.monash.fit2099.engine.actors.attributes.BaseAttributes.HEALTH)) {
-                int beforeMaxHP = spawned.getMaximumAttribute(edu.monash.fit2099.engine.actors.attributes.BaseAttributes.HEALTH);
-                
-                // Increase maximum health
+            if (spawned.hasStatistic(BaseAttributes.HEALTH)) {
+                int beforeMaxHP = spawned.getMaximumAttribute(BaseAttributes.HEALTH);
                 spawned.modifyStatsMaximum(
-                    edu.monash.fit2099.engine.actors.attributes.BaseAttributes.HEALTH,
-                    edu.monash.fit2099.engine.actors.attributes.ActorAttributeOperation.INCREASE,
+                    BaseAttributes.HEALTH,
+                    ActorAttributeOperation.INCREASE,
                     HEALTH_BOOST
                 );
-                
-                // Also heal the animal to full HP with the new maximum
                 spawned.modifyAttribute(
-                    edu.monash.fit2099.engine.actors.attributes.BaseAttributes.HEALTH,
-                    edu.monash.fit2099.engine.actors.attributes.ActorAttributeOperation.INCREASE,
+                    BaseAttributes.HEALTH,
+                    ActorAttributeOperation.INCREASE,
                     HEALTH_BOOST
                 );
             }
-            
             // Apply cold resistance capability to all spawned actors
-            // All actors spawned from Tundra get this ability
-            spawned.enableAbility(game.abilities.Abilities.COLD_RESISTANCE);
+            spawned.enableAbility(Abilities.COLD_RESISTANCE);
         }
     }
 
@@ -77,11 +75,7 @@ public class Tundra extends Ground {
     @Override
     public void tick(Location location) {
         super.tick(location);
-        
-        // Get current turn from the global turn counter
         int currentTurn = game.terrain.Snow.SpawnHelper.getGlobalTurn();
-        
-        // Attempt to spawn using the spawn helper
         game.terrain.Snow.SpawnHelper.attemptSpawn(location, spawnRule, currentTurn);
     }
 

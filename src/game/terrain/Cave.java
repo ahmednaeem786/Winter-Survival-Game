@@ -7,6 +7,7 @@ import edu.monash.fit2099.engine.positions.Location;
 import game.actors.Bear;
 import game.actors.Wolf;
 import game.actors.Deer;
+import game.Earth;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,13 +38,14 @@ public class Cave extends Ground {
         @Override
         public List<Class<? extends Actor>> allowedSpecies(GameMap map) {
             // Use the map-specific spawn profile from Earth class
-            return game.Earth.getAllowedSpecies(map.toString(), Cave.class);
+            return Earth.getAllowedSpecies(map.toString(), Cave.class);
         }
 
         @Override
         public void applySpawnEffects(Actor spawned, GameMap map) {
-            // Cave-spawned animals don't get special effects
-            // They spawn with normal characteristics
+            // Cave-specific spawn effects (if any) go here
+            // Universal post-spawn effects (deer->apple, bear->berries, wolf->tree, croc->poison)
+            // are now handled by Snow.SpawnHelper after actor is added to map
         }
     }
 
@@ -54,11 +56,7 @@ public class Cave extends Ground {
     @Override
     public void tick(Location location) {
         super.tick(location);
-        
-        // Get current turn from the global turn counter
         int currentTurn = game.terrain.Snow.SpawnHelper.getGlobalTurn();
-        
-        // Attempt to spawn using the spawn helper
         game.terrain.Snow.SpawnHelper.attemptSpawn(location, spawnRule, currentTurn);
     }
 }

@@ -7,6 +7,8 @@ import edu.monash.fit2099.engine.positions.Location;
 import game.actors.Bear;
 import game.actors.Wolf;
 import game.actors.Deer;
+import game.Earth;
+import game.abilities.Abilities;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +40,6 @@ public class Meadow extends Ground {
             if (globalTurn % SPAWN_CADENCE != 0) {
                 return false;
             }
-            
             // 50% chance gate
             return random.nextDouble() < SPAWN_CHANCE;
         }
@@ -46,15 +47,13 @@ public class Meadow extends Ground {
         @Override
         public List<Class<? extends Actor>> allowedSpecies(GameMap map) {
             // Use the map-specific spawn profile from Earth class
-            return game.Earth.getAllowedSpecies(map.toString(), Meadow.class);
+            return Earth.getAllowedSpecies(map.toString(), Meadow.class);
         }
 
         @Override
         public void applySpawnEffects(Actor spawned, GameMap map) {
             // Apply ground consumption capability to Meadow-spawned animals
-            // This allows them to consume items on the ground like the Explorer
-            // All actors spawned from Meadow get this ability
-            spawned.enableAbility(game.abilities.Abilities.GROUND_CONSUMPTION);
+            spawned.enableAbility(Abilities.GROUND_CONSUMPTION);
         }
     }
 
@@ -65,11 +64,7 @@ public class Meadow extends Ground {
     @Override
     public void tick(Location location) {
         super.tick(location);
-        
-        // Get current turn from the global turn counter
         int currentTurn = game.terrain.Snow.SpawnHelper.getGlobalTurn();
-        
-        // Attempt to spawn using the spawn helper
         game.terrain.Snow.SpawnHelper.attemptSpawn(location, spawnRule, currentTurn);
     }
 

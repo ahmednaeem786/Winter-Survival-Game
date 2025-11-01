@@ -4,6 +4,8 @@ import edu.monash.fit2099.engine.actors.Actor;
 import edu.monash.fit2099.engine.positions.Ground;
 import edu.monash.fit2099.engine.positions.GameMap;
 import edu.monash.fit2099.engine.positions.Location;
+import game.spawning.PostSpawnEffect;
+import game.spawning.PostSpawnEffectRegistry;
 
 import java.util.List;
 import java.util.Random;
@@ -90,11 +92,15 @@ public class Snow extends Ground {
 
             // Randomly select a species to spawn
             Class<? extends Actor> speciesClass = allowedSpecies.get(random.nextInt(allowedSpecies.size()));
-            
             try {
-                Actor spawned = speciesClass.getDeclaredConstructor().newInstance();
+                Actor spawned = game.spawning.AnimalRegistry.create(speciesClass);
                 spawnRule.applySpawnEffects(spawned, map);
                 map.addActor(spawned, location);
+                // Apply spawner-agnostic post-spawn effects (REQ2) for all spawners
+                PostSpawnEffect effect = PostSpawnEffectRegistry.getFor(speciesClass);
+                if (effect != null) {
+                    effect.apply(location, spawned, map);
+                }
             } catch (Exception e) {
                 // If spawning fails, just continue without error
                 // This prevents the game from crashing due to spawning issues
