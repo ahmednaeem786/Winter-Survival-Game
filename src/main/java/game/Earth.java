@@ -17,6 +17,7 @@ import edu.monash.fit2099.engine.positions.World;
 import game.abilities.Abilities;
 import game.actors.*;
 import game.actors.Questmaster;
+import game.items.Axe;
 import game.items.TeleportCube;
 import game.teleportation.TeleportDestination;
 import game.terrain.*;
@@ -350,7 +351,9 @@ public class Earth extends World {
         plainsGameMap.at(6,2).setGround(PlantFactory.createYewSaplingForMap(true));
 
         Player player = new Player("Explorer", 'ඞ', 100);
-        this.addPlayer(player, gameMap.at(15, 8));
+        this.addPlayer(player, gameMap.at(6, 6));
+        Axe axe = new Axe();
+        this.player.addItemToInventory(axe);
 
         populateWithAnimals(gameMap);
         ensureRequiredSpawners(plainsGameMap);
