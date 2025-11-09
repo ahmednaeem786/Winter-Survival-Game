@@ -1,4 +1,4 @@
-# FIT2099 Assignment (Semester 2, 2025)
+# Winter Survival Game
 ```                                                                             
 `7MMF'     A     `7MF'`7MMF'`7MN.   `7MF'MMP""MM""YMM `7MM"""YMM  `7MM"""Mq.  
   `MA     ,MA     ,V    MM    MMN.    M  P'   MM   `7   MM    `7    MM   `MM. 
